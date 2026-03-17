@@ -20,6 +20,39 @@ import { Transaction, TransactionInput } from '../types/transaction';
 
 const PAGE_SIZE = 20;
 
+/**
+ * Normaliza um documento do Firestore para o formato Transaction.
+ * Compatível com dados legados que usam amount+/- sem campo `type`.
+ */
+function normalizeTransaction(id: string, data: any): Transaction {
+  const safeAmount = (val: any) => {
+    const num = Number(val);
+    return isNaN(num) ? 0 : num;
+  };
+
+  // Dados legados: sem campo `type`, amount pode ser negativo
+  if (!data.type) {
+    const rawAmount = safeAmount(data.amount);
+    return {
+      id,
+      description: data.description ?? '',
+      amount: Math.abs(rawAmount),
+      type: rawAmount >= 0 ? 'income' : 'expense',
+      category: data.category ?? 'outros',
+      date: data.date ?? new Date().toISOString(),
+      receiptUrl: data.receiptUrl,
+      createdAt: data.createdAt,
+    };
+  }
+  // Dados novos: com campo `type`
+  return {
+    id,
+    ...data,
+    amount: Math.abs(safeAmount(data.amount)),
+  } as Transaction;
+}
+
+
 interface TransactionFilters {
   type?: 'income' | 'expense' | 'all';
   category?: string;
@@ -117,7 +150,7 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
       try {
         const q = query(baseCollection(), ...buildConstraints(filters));
         const snapshot = await getDocs(q);
-        const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction));
+        const docs = snapshot.docs.map((d) => normalizeTransaction(d.id, d.data()));
         setTransactions(docs);
         setLastDoc(snapshot.docs[snapshot.docs.length - 1] ?? null);
         setHasMore(snapshot.docs.length === PAGE_SIZE);
@@ -137,7 +170,7 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     try {
       const q = query(baseCollection(), ...buildConstraints(currentFilters, lastDoc));
       const snapshot = await getDocs(q);
-      const docs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction));
+      const docs = snapshot.docs.map((d) => normalizeTransaction(d.id, d.data()));
       setTransactions((prev) => [...prev, ...docs]);
       setLastDoc(snapshot.docs[snapshot.docs.length - 1] ?? null);
       setHasMore(snapshot.docs.length === PAGE_SIZE);
