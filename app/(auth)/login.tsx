@@ -38,14 +38,15 @@ export default function LoginScreen() {
           <Text className="text-base text-slate-500 dark:text-slate-400">Finance App Login</Text>
         </View>
 
-        <View className="space-y-4">
+        <View className="flex-col gap-4">
           <TextInput
             placeholder="E-mail"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-slate-100"
+            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
+            style={{ padding: 8 }}
             placeholderTextColor="#9ca3af"
           />
           <TextInput
@@ -53,7 +54,8 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 text-slate-900 dark:text-slate-100"
+            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
+            style={{ padding: 8 }}
             placeholderTextColor="#9ca3af"
           />
         </View>
@@ -61,17 +63,19 @@ export default function LoginScreen() {
         {loading ? (
           <ActivityIndicator size="large" color="#3b82f6" className="mt-6" />
         ) : (
-          <View className="space-y-3 mt-6">
+          <View className="flex-col gap-3 mt-6">
             <TouchableOpacity
               onPress={() => handleAuth(false)}
-              className="w-full bg-blue-600 rounded-lg py-3 items-center"
+              className="w-full bg-blue-600 rounded-lg items-center"
+              style={{ padding: 8 }}
             >
               <Text className="text-white font-semibold text-lg">Entrar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => handleAuth(true)}
-              className="w-full bg-slate-200 dark:bg-slate-800 rounded-lg py-3 items-center"
+              className="w-full bg-slate-200 dark:bg-slate-800 rounded-lg items-center"
+              style={{ padding: 8 }}
             >
               <Text className="text-slate-900 dark:text-slate-100 font-semibold text-lg">Criar Conta</Text>
             </TouchableOpacity>
