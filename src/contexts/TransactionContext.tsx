@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import {
   collection,
   addDoc,
@@ -58,10 +58,12 @@ interface TransactionFilters {
   category?: string;
   startDate?: Date;
   endDate?: Date;
+  search?: string;
 }
 
 interface TransactionContextType {
   transactions: Transaction[];
+  filteredTransactions: Transaction[];
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
@@ -102,6 +104,15 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   const [currentFilters, setCurrentFilters] = useState<TransactionFilters>({});
 
   // ─── Totais derivados ────────────────────────────────────────────────────────
+  const filteredTransactions = useMemo(() => {
+    if (!currentFilters.search) return transactions;
+    const term = currentFilters.search.toLowerCase();
+    return transactions.filter(t => 
+      t.description.toLowerCase().includes(term) || 
+      t.category.toLowerCase().includes(term)
+    );
+  }, [transactions, currentFilters.search]);
+
   const totalIncome = transactions.reduce(
     (acc, t) => (t.type === 'income' ? acc + t.amount : acc),
     0
@@ -237,6 +248,7 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     <TransactionContext.Provider
       value={{
         transactions,
+        filteredTransactions,
         loading,
         loadingMore,
         hasMore,
