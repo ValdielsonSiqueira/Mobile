@@ -19,15 +19,16 @@ import { useTransactions } from '../../src/contexts/TransactionContext';
 import { useUploadReceipt } from '../../src/hooks/useUploadReceipt';
 import { CATEGORIES } from '../../src/utils/categories';
 import { Toast } from '../../src/components/Toast';
-import { 
-  ArrowLeft, 
-  Calendar as CalendarIcon, 
-  Camera, 
-  FileText, 
-  Check, 
+import { ConfirmationModal } from '../../src/components/ConfirmationModal';
+import {
+  ArrowLeft,
+  Calendar as CalendarIcon,
+  Camera,
+  FileText,
+  Check,
+  Trash2,
   X,
-  Plus,
-  Trash2
+  Plus
 } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
@@ -73,6 +74,8 @@ export default function ManageTransactionScreen() {
     type: 'success',
   });
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -106,8 +109,21 @@ export default function ManageTransactionScreen() {
           date: tx.date,
           receiptUrl: tx.receiptUrl,
         });
+      } else {
+        // ID presente mas transação não encontrada (pode ter sido deletada)
+        setIsEdit(false);
+        reset({
+          description: '',
+          amount: 0,
+          type: 'expense',
+          category: '',
+          date: new Date().toISOString(),
+          receiptUrl: '',
+        });
+        setReceiptFile(null);
       }
     } else {
+      // Sem ID = Modo de criação de novo registro
       setIsEdit(false);
       reset({
         description: '',
@@ -183,7 +199,8 @@ export default function ManageTransactionScreen() {
         showToast('Transação salva!', 'success');
       }
 
-      // Limpa os campos após o sucesso
+      // Limpa os campos e o modo de edição após o sucesso
+      setIsEdit(false);
       reset({
         description: '',
         amount: 0,
@@ -378,41 +395,14 @@ export default function ManageTransactionScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.saveBtnText}>
-              {isEdit ? 'Atualizar Transação' : 'Salvar Transação'}
+              {isEdit ? 'Atualizar Transação' : 'Nova Transação'}
             </Text>
           )}
         </TouchableOpacity>
 
         {isEdit && (
           <TouchableOpacity
-            onPress={() => {
-              Alert.alert(
-                'Excluir Transação',
-                'Tem certeza que deseja excluir esta transação?',
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  { 
-                    text: 'Excluir', 
-                    style: 'destructive',
-                    onPress: async () => {
-                      console.log('[Delete] Iniciando exclusão da transação ID:', id);
-                      try {
-                        if (!id) throw new Error('ID da transação não encontrado.');
-                        await deleteTransaction(id);
-                        console.log('[Delete] Transação excluída com sucesso no Firestore e Contexto');
-                        showToast('Transação excluída!', 'success');
-                        
-                        // Redireciona para o Histórico após 1s
-                        setTimeout(() => router.push('/(tabs)/transactions'), 1000);
-                      } catch (e: any) {
-                        console.error('[Delete] Erro ao excluir:', e);
-                        showToast(e.message, 'error');
-                      }
-                    }
-                  }
-                ]
-              );
-            }}
+            onPress={() => setShowDeleteConfirm(true)}
             style={[styles.deleteBtn, { borderColor }]}
           >
             <Trash2 size={20} color="#ef4444" />
@@ -420,6 +410,41 @@ export default function ManageTransactionScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      {/* Modais / Pickers */}
+      <ConfirmationModal
+        visible={showDeleteConfirm}
+        title="Excluir Transação?"
+        description="Tem certeza que deseja apagar este registro? Esta ação não pode ser desfeita."
+        confirmLabel="Sim, Excluir"
+        cancelLabel="Voltar"
+        onConfirm={async () => {
+          try {
+            if (!id) throw new Error('ID da transação não encontrado.');
+            await deleteTransaction(id);
+            
+            // Limpa os campos após a exclusão
+            reset({
+              description: '',
+              amount: 0,
+              type: 'expense',
+              category: '',
+              date: new Date().toISOString(),
+              receiptUrl: '',
+            });
+            setReceiptFile(null);
+
+            setShowDeleteConfirm(false);
+            showToast('Transação excluída!', 'success');
+            setTimeout(() => router.push('/(tabs)/transactions'), 1000);
+          } catch (e: any) {
+            setShowDeleteConfirm(false);
+            showToast(e.message || 'Erro ao excluir transação', 'error');
+          }
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+        type="delete"
+      />
 
       {/* Modais / Pickers */}
       {showDatePicker && (
