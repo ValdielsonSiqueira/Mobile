@@ -9,7 +9,7 @@ import {
   Dimensions,
   StyleSheet,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { PieChart, BarChart } from 'react-native-gifted-charts';
 import { useColorScheme } from 'nativewind';
 import { Moon, Sun, PlusCircle, TrendingUp, TrendingDown, Wallet } from 'lucide-react-native';
@@ -17,6 +17,8 @@ import { useTransactions } from '../../src/contexts/TransactionContext';
 import { getCategoryColor, getCategoryLabel } from '../../src/utils/categories';
 import { format, subMonths, getYear, getMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { EmptyState } from '../../src/components/EmptyState';
+import { CategoryBadge } from '../../src/components/CategoryBadge';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -75,6 +77,7 @@ function SummaryCard({ label, value, color, icon, animStyle, dark }: SummaryCard
 
 // ─── Tela Principal ───────────────────────────────────────────────────────────
 export default function DashboardScreen() {
+  const router = useRouter();
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const dark = colorScheme === 'dark';
 
@@ -333,25 +336,34 @@ export default function DashboardScreen() {
 
           {recentTransactions.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: cardBg }]}>
-              <Text style={{ fontSize: 32 }}>💸</Text>
-              <Text style={{ color: textSub, marginTop: 8, textAlign: 'center' }}>
-                Nenhuma transação ainda.{'\n'}Adicione a primeira!
-              </Text>
+              <EmptyState
+                icon={Wallet}
+                title="Sem transações"
+                description="Você ainda não registrou nenhuma movimentação financeira."
+              />
             </View>
           ) : (
             recentTransactions.map((tx) => (
-              <View key={tx.id} style={[styles.txRow, { backgroundColor: cardBg }]}>
+              <TouchableOpacity 
+                key={tx.id} 
+                style={[styles.txRow, { backgroundColor: cardBg }]}
+                onPress={() => router.push({ pathname: '/(tabs)/manage-transaction', params: { id: tx.id } })}
+              >
                 <View style={[styles.txDot, { backgroundColor: getCategoryColor(tx.category) + '25' }]}>
                   <View style={[styles.txDotInner, { backgroundColor: getCategoryColor(tx.category) }]} />
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={{ color: textMain, fontWeight: '600', fontSize: 14 }}>{tx.description}</Text>
-                  <Text style={{ color: textSub, fontSize: 12, marginTop: 2 }}>{getCategoryLabel(tx.category)}</Text>
+                  <Text style={{ color: textMain, fontWeight: '600', fontSize: 14 }} numberOfLines={1}>
+                    {tx.description}
+                  </Text>
+                  <View style={{ marginTop: 2 }}>
+                    <CategoryBadge category={tx.category} />
+                  </View>
                 </View>
                 <Text style={{ fontWeight: '700', fontSize: 15, color: tx.type === 'income' ? '#22c55e' : '#ef4444' }}>
                   {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                 </Text>
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </Animated.View>

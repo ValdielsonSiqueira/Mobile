@@ -107,6 +107,17 @@ export default function ManageTransactionScreen() {
           receiptUrl: tx.receiptUrl,
         });
       }
+    } else {
+      setIsEdit(false);
+      reset({
+        description: '',
+        amount: 0,
+        type: 'expense',
+        category: '',
+        date: new Date().toISOString(),
+        receiptUrl: '',
+      });
+      setReceiptFile(null);
     }
   }, [id, getTransactionById, reset]);
 
@@ -151,7 +162,7 @@ export default function ManageTransactionScreen() {
     if (!user) return;
 
     try {
-      let finalReceiptUrl = data.receiptUrl;
+      let finalReceiptUrl = data.receiptUrl || null;
 
       // Se houver um novo arquivo de recibo, faz o upload
       if (receiptFile) {
@@ -171,6 +182,17 @@ export default function ManageTransactionScreen() {
         await addTransaction(transactionData);
         showToast('Transação salva!', 'success');
       }
+
+      // Limpa os campos após o sucesso
+      reset({
+        description: '',
+        amount: 0,
+        type: 'expense',
+        category: '',
+        date: new Date().toISOString(),
+        receiptUrl: '',
+      });
+      setReceiptFile(null);
 
       // Redireciona para o Histórico após 1s
       setTimeout(() => router.push('/(tabs)/transactions'), 1000);

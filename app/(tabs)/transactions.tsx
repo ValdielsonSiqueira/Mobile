@@ -23,6 +23,8 @@ import { useTransactions } from '../../src/contexts/TransactionContext';
 import { getCategoryColor, getCategoryLabel } from '../../src/utils/categories';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { EmptyState } from '../../src/components/EmptyState';
+import { CategoryBadge } from '../../src/components/CategoryBadge';
 
 export default function TransactionsScreen() {
   const router = useRouter();
@@ -79,9 +81,7 @@ export default function TransactionsScreen() {
             {item.description}
           </Text>
           <View style={styles.subDetails}>
-            <Text style={[styles.category, { color: getCategoryColor(item.category) }]}>
-              {getCategoryLabel(item.category)}
-            </Text>
+            <CategoryBadge category={item.category} />
             <Text style={[styles.dot, { color: textSub }]}>•</Text>
             <Text style={[styles.date, { color: textSub }]}>
               {format(new Date(item.date), 'dd MMM', { locale: ptBR })}
@@ -156,12 +156,17 @@ export default function TransactionsScreen() {
         }
         ListEmptyComponent={
           !loading ? (
-            <View style={styles.emptyContainer}>
-              <Filter size={48} color={textSub} />
-              <Text style={[styles.emptyText, { color: textSub }]}>
-                Nenhuma transação encontrada
-              </Text>
-            </View>
+            <EmptyState
+              icon={Filter}
+              title="Sem resultados"
+              description="Não encontramos nenhuma transação com esses filtros. Tente mudar a busca ou o tipo."
+              actionLabel="Ver Todas"
+              onAction={() => {
+                setSearchText('');
+                setActiveType('all');
+                fetchTransactions({ search: '', type: 'all' });
+              }}
+            />
           ) : null
         }
       />
