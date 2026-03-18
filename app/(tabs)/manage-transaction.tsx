@@ -54,7 +54,12 @@ export default function ManageTransactionScreen() {
   const { colorScheme } = useColorScheme();
   const dark = colorScheme === 'dark';
   
-  const { getTransactionById, addTransaction, updateTransaction } = useTransactions();
+  const { 
+    getTransactionById, 
+    addTransaction, 
+    updateTransaction,
+    deleteTransaction 
+  } = useTransactions();
   const { upload, uploading, progress } = useUploadReceipt();
 
   const [isEdit, setIsEdit] = useState(false);
@@ -368,11 +373,17 @@ export default function ManageTransactionScreen() {
                     text: 'Excluir', 
                     style: 'destructive',
                     onPress: async () => {
+                      console.log('[Delete] Iniciando exclusão da transação ID:', id);
                       try {
-                        await deleteTransaction(id!);
+                        if (!id) throw new Error('ID da transação não encontrado.');
+                        await deleteTransaction(id);
+                        console.log('[Delete] Transação excluída com sucesso no Firestore e Contexto');
                         showToast('Transação excluída!', 'success');
-                        setTimeout(() => router.back(), 1500);
+                        
+                        // Redireciona para o Histórico após 1s
+                        setTimeout(() => router.push('/(tabs)/transactions'), 1000);
                       } catch (e: any) {
+                        console.error('[Delete] Erro ao excluir:', e);
                         showToast(e.message, 'error');
                       }
                     }
