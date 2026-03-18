@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'expo-router';
 import {
   View,
   Text,
@@ -24,6 +25,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function TransactionsScreen() {
+  const router = useRouter();
   const { colorScheme } = useColorScheme();
   const dark = colorScheme === 'dark';
   
@@ -62,7 +64,7 @@ export default function TransactionsScreen() {
     return (
       <TouchableOpacity 
         style={[styles.transactionItem, { backgroundColor: cardBg, borderColor }]}
-        onPress={() => {/* TODO: Navegar para detalhes/edição */}}
+        onPress={() => router.push({ pathname: './manage-transaction', params: { id: item.id } })}
       >
         <View style={[styles.iconContainer, { backgroundColor: isIncome ? '#22c55e20' : '#ef444420' }]}>
           {isIncome ? (

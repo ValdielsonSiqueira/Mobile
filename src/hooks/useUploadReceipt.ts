@@ -25,9 +25,19 @@ export function useUploadReceipt() {
       setError(null);
 
       try {
-        // Converte URI local em Blob
-        const response = await fetch(uri);
-        const blob = await response.blob();
+        // Converte URI local em Blob (Método recomendado para Firebase + RN/Expo)
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.onload = function () {
+            resolve(xhr.response);
+          };
+          xhr.onerror = function (e) {
+            reject(new TypeError("Network request failed"));
+          };
+          xhr.responseType = "blob";
+          xhr.open("GET", uri, true);
+          xhr.send(null);
+        });
 
         const storagePath = `users/${userId}/receipts/${Date.now()}_${fileName}`;
         const storageRef = ref(storage, storagePath);
