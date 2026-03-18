@@ -105,6 +105,8 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
 
   // ─── Totais derivados ────────────────────────────────────────────────────────
   const filteredTransactions = useMemo(() => {
+    // Filtros de Tipo, Categoria e Data agora são via Serviço (Firestore)
+    // Apenas a busca (search) é feita localmente pois o Firestore não suporta nativamente
     if (!currentFilters.search) return transactions;
     const term = currentFilters.search.toLowerCase();
     return transactions.filter(t => 
@@ -159,14 +161,20 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
       setError(null);
       setCurrentFilters(filters);
       try {
-        const q = query(baseCollection(), ...buildConstraints(filters));
+        const constraints = buildConstraints(filters);
+        const q = query(baseCollection(), ...constraints);
         const snapshot = await getDocs(q);
         const docs = snapshot.docs.map((d) => normalizeTransaction(d.id, d.data()));
+        
         setTransactions(docs);
         setLastDoc(snapshot.docs[snapshot.docs.length - 1] ?? null);
         setHasMore(snapshot.docs.length === PAGE_SIZE);
       } catch (e: any) {
-        setError(e.message ?? 'Erro ao carregar transações.');
+        if (e.message?.includes('requires an index')) {
+          setError('Esta consulta precisa de um índice no Firebase. Verifique o console do terminal para o link de criação.');
+        } else {
+          setError(e.message ?? 'Erro ao carregar transações.');
+        }
       } finally {
         setLoading(false);
       }
@@ -179,14 +187,19 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     if (!user || !hasMore || loadingMore || !lastDoc) return;
     setLoadingMore(true);
     try {
-      const q = query(baseCollection(), ...buildConstraints(currentFilters, lastDoc));
+      const constraints = buildConstraints(currentFilters, lastDoc);
+      const q = query(baseCollection(), ...constraints);
       const snapshot = await getDocs(q);
       const docs = snapshot.docs.map((d) => normalizeTransaction(d.id, d.data()));
       setTransactions((prev) => [...prev, ...docs]);
       setLastDoc(snapshot.docs[snapshot.docs.length - 1] ?? null);
       setHasMore(snapshot.docs.length === PAGE_SIZE);
     } catch (e: any) {
-      setError(e.message ?? 'Erro ao carregar mais transações.');
+      if (e.message?.includes('requires an index')) {
+        setError('Erro de índice na paginação. Verifique o console.');
+      } else {
+        setError(e.message ?? 'Erro ao carregar mais transações.');
+      }
     } finally {
       setLoadingMore(false);
     }

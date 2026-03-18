@@ -25,6 +25,8 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EmptyState } from '../../src/components/EmptyState';
 import { CategoryBadge } from '../../src/components/CategoryBadge';
+import { FilterModal } from '../../src/components/FilterModal';
+import { Toast } from '../../src/components/Toast';
 
 export default function TransactionsScreen() {
   const router = useRouter();
@@ -38,11 +40,31 @@ export default function TransactionsScreen() {
     hasMore, 
     fetchMore, 
     refresh,
-    fetchTransactions 
+    fetchTransactions,
+    error: contextError
   } = useTransactions();
 
   const [searchText, setSearchText] = useState('');
   const [activeType, setActiveType] = useState<'all' | 'income' | 'expense'>('all');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<{ category?: string; startDate?: Date; endDate?: Date }>({});
+
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' | 'warning' }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToast({ visible: true, message, type });
+  };
+
+  // Monitorar erros do contexto (ex: falta de índice no Firestore)
+  React.useEffect(() => {
+    if (contextError) {
+      showToast(contextError, 'error');
+    }
+  }, [contextError]);
 
   const bgColor = dark ? '#0f172a' : '#f8fafc';
   const cardBg = dark ? '#1e293b' : '#ffffff';
@@ -52,12 +74,33 @@ export default function TransactionsScreen() {
 
   const handleSearch = (text: string) => {
     setSearchText(text);
-    fetchTransactions({ search: text, type: activeType });
+    fetchTransactions({ 
+      search: text, 
+      type: activeType,
+      category: advancedFilters.category,
+      startDate: advancedFilters.startDate,
+      endDate: advancedFilters.endDate
+    });
   };
 
   const handleTypeChange = (type: 'all' | 'income' | 'expense') => {
     setActiveType(type);
-    fetchTransactions({ search: searchText, type });
+    fetchTransactions({ 
+      search: searchText, 
+      type,
+      category: advancedFilters.category,
+      startDate: advancedFilters.startDate,
+      endDate: advancedFilters.endDate
+    });
+  };
+
+  const handleApplyAdvancedFilters = (filters: { category?: string; startDate?: Date; endDate?: Date }) => {
+    setAdvancedFilters(filters);
+    fetchTransactions({
+      search: searchText,
+      type: activeType,
+      ...filters
+    }).catch(err => showToast(err.message, 'error'));
   };
 
   const renderItem = ({ item }: { item: any }) => {
@@ -133,8 +176,15 @@ export default function TransactionsScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-          <TouchableOpacity style={[styles.filterBtn, { borderColor, borderWidth: 1 }]}>
-            <SlidersHorizontal size={18} color={textSub} />
+          <TouchableOpacity 
+            onPress={() => setShowFilterModal(true)}
+            style={[
+              styles.filterBtn, 
+              { borderColor, borderWidth: 1 },
+              Object.keys(advancedFilters).length > 0 && { backgroundColor: '#3b82f620', borderColor: '#3b82f6' }
+            ]}
+          >
+            <SlidersHorizontal size={18} color={Object.keys(advancedFilters).length > 0 ? '#3b82f6' : textSub} />
           </TouchableOpacity>
         </View>
       </View>
@@ -164,11 +214,26 @@ export default function TransactionsScreen() {
               onAction={() => {
                 setSearchText('');
                 setActiveType('all');
+                setAdvancedFilters({});
                 fetchTransactions({ search: '', type: 'all' });
               }}
             />
           ) : null
         }
+      />
+
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApply={handleApplyAdvancedFilters}
+        initialFilters={advancedFilters}
+      />
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
       />
     </View>
   );
