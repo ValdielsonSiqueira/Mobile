@@ -12,7 +12,7 @@ import {
 import { Link, useRouter } from 'expo-router';
 import { PieChart, BarChart } from 'react-native-gifted-charts';
 import { useColorScheme } from 'nativewind';
-import { Moon, Sun, PlusCircle, TrendingUp, TrendingDown, Wallet } from 'lucide-react-native';
+import { Moon, Sun, PlusCircle, TrendingUp, TrendingDown, Wallet, Eye, EyeOff } from 'lucide-react-native';
 import { useTransactions } from '../../src/contexts/TransactionContext';
 import { getCategoryColor, getCategoryLabel } from '../../src/utils/categories';
 import { format, subMonths, getYear, getMonth } from 'date-fns';
@@ -61,16 +61,17 @@ interface SummaryCardProps {
   icon: React.ReactNode;
   animStyle: any;
   dark: boolean;
+  hideValues: boolean;
 }
 
-function SummaryCard({ label, value, color, icon, animStyle, dark }: SummaryCardProps) {
+function SummaryCard({ label, value, color, icon, animStyle, dark, hideValues }: SummaryCardProps) {
   return (
     <Animated.View style={[animStyle, styles.summaryCard, { backgroundColor: dark ? '#1e293b' : '#fff' }]}>
       <View style={[styles.summaryIcon, { backgroundColor: color + '20' }]}>
         {icon}
       </View>
       <Text style={[styles.summaryLabel, { color: dark ? '#94a3b8' : '#64748b' }]}>{label}</Text>
-      <Text style={[styles.summaryValue, { color }]}>{formatCurrency(value)}</Text>
+      <Text style={[styles.summaryValue, { color }]}>{hideValues ? '••••••••' : formatCurrency(value)}</Text>
     </Animated.View>
   );
 }
@@ -81,6 +82,7 @@ export default function DashboardScreen() {
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const dark = colorScheme === 'dark';
 
+  const [hideValues, setHideValues] = useState(false);
   const [barPeriod, setBarPeriod] = useState(6);
   const [pieType, setPieType] = useState<'income' | 'expense'>('expense');
   const { transactions, loading, balance, totalIncome, totalExpense, refresh } = useTransactions();
@@ -165,12 +167,20 @@ export default function DashboardScreen() {
             <Text style={{ fontSize: 26, fontWeight: '800', color: textMain }}>Visão Geral</Text>
             <Text style={{ fontSize: 13, color: textSub, marginTop: 2 }}>Acompanhe suas finanças</Text>
           </View>
-          <TouchableOpacity
-            onPress={toggleColorScheme}
-            style={{ padding: 10, backgroundColor: dark ? '#1e293b' : '#e2e8f0', borderRadius: 999 }}
-          >
-            {dark ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#475569" />}
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => setHideValues(prev => !prev)}
+              style={{ padding: 10, backgroundColor: dark ? '#1e293b' : '#e2e8f0', borderRadius: 999 }}
+            >
+              {hideValues ? <EyeOff size={20} color={dark ? '#94a3b8' : '#64748b'} /> : <Eye size={20} color={dark ? '#94a3b8' : '#64748b'} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={toggleColorScheme}
+              style={{ padding: 10, backgroundColor: dark ? '#1e293b' : '#e2e8f0', borderRadius: 999 }}
+            >
+              {dark ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#475569" />}
+            </TouchableOpacity>
+          </View>
         </View>
       </Animated.View>
 
@@ -183,7 +193,7 @@ export default function DashboardScreen() {
             <Text style={{ color: '#bfdbfe', marginLeft: 6, fontWeight: '600', fontSize: 13 }}>Saldo Total</Text>
           </View>
           <Text style={{ fontSize: 38, fontWeight: '800', color: '#fff', letterSpacing: -1 }}>
-            {formatCurrency(balance)}
+            {hideValues ? '••••••••' : formatCurrency(balance)}
           </Text>
           <Text style={{ color: '#bfdbfe', marginTop: 6, fontSize: 12 }}>
             {transactions.length} transação{transactions.length !== 1 ? 'ões' : ''} registrada{transactions.length !== 1 ? 's' : ''}
@@ -199,6 +209,7 @@ export default function DashboardScreen() {
             icon={<TrendingUp size={18} color="#22c55e" />}
             animStyle={[cardsAnim, { flex: 1 }]}
             dark={dark}
+            hideValues={hideValues}
           />
           <SummaryCard
             label="Despesas"
@@ -207,11 +218,12 @@ export default function DashboardScreen() {
             icon={<TrendingDown size={18} color="#ef4444" />}
             animStyle={[cardsAnim, { flex: 1 }]}
             dark={dark}
+            hideValues={hideValues}
           />
         </View>
 
         {/* ── Botão Nova Transação ──────────────────── */}
-        <Link href="/(tabs)/manage-transaction" asChild>
+        <Link href={{ pathname: '/(tabs)/manage-transaction', params: { id: '' } }} asChild>
           <TouchableOpacity
             style={{
               flexDirection: 'row',
@@ -272,7 +284,7 @@ export default function DashboardScreen() {
                   <View style={{ alignItems: 'center' }}>
                     <Text style={{ fontSize: 11, color: dark ? '#94a3b8' : '#64748b' }}>Total</Text>
                     <Text style={{ fontSize: 14, fontWeight: '700', color: dark ? '#f1f5f9' : '#0f172a' }}>
-                      {formatCurrency(pieType === 'expense' ? totalExpense : totalIncome)}
+                      {hideValues ? '••••••••' : formatCurrency(pieType === 'expense' ? totalExpense : totalIncome)}
                     </Text>
                   </View>
                 )}
@@ -287,7 +299,7 @@ export default function DashboardScreen() {
                     <Text style={{ color: textSub, fontSize: 13 }}>{item.text}</Text>
                   </View>
                   <Text style={{ color: textMain, fontWeight: '600', fontSize: 13 }}>
-                    {formatCurrency(item.value)}
+                    {hideValues ? '••••••••' : formatCurrency(item.value)}
                   </Text>
                 </View>
               ))}
@@ -326,9 +338,11 @@ export default function DashboardScreen() {
 
           <View style={{ overflow: 'hidden', width: SCREEN_WIDTH - 80 }}>
             <BarChart
+              key={`chart-${barPeriod}`}
               data={groupedBarData}
               barWidth={barPeriod > 6 ? 10 : 16}
               spacing={barPeriod > 6 ? 12 : 24}
+              endSpacing={40}
               roundedTop
               xAxisThickness={1}
               yAxisThickness={0}
@@ -382,14 +396,14 @@ export default function DashboardScreen() {
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={{ color: textMain, fontWeight: '600', fontSize: 14 }} numberOfLines={1}>
-                    {tx.description}
+                    {hideValues ? '••••••••' : tx.description}
                   </Text>
                   <View style={{ marginTop: 2 }}>
                     <CategoryBadge category={tx.category} />
                   </View>
                 </View>
                 <Text style={{ fontWeight: '700', fontSize: 15, color: tx.type === 'income' ? '#22c55e' : '#ef4444' }}>
-                  {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                  {hideValues ? '••••••••' : `${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.amount)}`}
                 </Text>
               </TouchableOpacity>
             ))

@@ -1,8 +1,10 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 import { Home, List, PlusCircle } from 'lucide-react-native';
 
 export default function TabLayout() {
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
@@ -28,6 +30,12 @@ export default function TabLayout() {
         options={{
           title: 'Nova',
           tabBarIcon: ({ color }) => <PlusCircle size={24} color={color} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push({ pathname: '/(tabs)/manage-transaction', params: { id: '' } });
+          },
         }}
       />
     </Tabs>
