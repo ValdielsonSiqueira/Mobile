@@ -82,6 +82,7 @@ export default function DashboardScreen() {
   const dark = colorScheme === 'dark';
 
   const [barPeriod, setBarPeriod] = useState(6);
+  const [pieType, setPieType] = useState<'income' | 'expense'>('expense');
   const { transactions, loading, balance, totalIncome, totalExpense, refresh } = useTransactions();
 
   // Animações escalonadas
@@ -92,11 +93,11 @@ export default function DashboardScreen() {
   const barAnim      = useFadeSlideIn(400);
   const recentAnim   = useFadeSlideIn(500);
 
-  // ── Dados para o gráfico de pizza (top 5 categorias de despesa) ────────────
+  // ── Dados para o gráfico de pizza (top 5 categorias) ───────────────────────
   const pieData = useMemo(() => {
-    const expenses = transactions.filter((t) => t.type === 'expense');
+    const list = transactions.filter((t) => t.type === pieType);
     const byCategory: Record<string, number> = {};
-    expenses.forEach((t) => {
+    list.forEach((t) => {
       byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amount;
     });
     const sorted = Object.entries(byCategory)
@@ -108,7 +109,7 @@ export default function DashboardScreen() {
       color: getCategoryColor(cat),
       text: getCategoryLabel(cat),
     }));
-  }, [transactions]);
+  }, [transactions, pieType]);
 
   // ── Dados para gráfico de barras (dinâmico por período) ───────────────────
   const barData = useMemo(() => {
@@ -229,10 +230,37 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </Link>
 
-        {/* ── Gráfico: Despesas por categoria (Pizza) ─ */}
+        {/* ── Gráfico: Por categoria (Pizza) ─ */}
         {pieData.length > 0 && (
           <Animated.View style={[pieAnim, styles.chartCard, { backgroundColor: cardBg }]}>
-            <Text style={[styles.chartTitle, { color: textMain }]}>Despesas por Categoria</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.chartTitle, { color: textMain, marginBottom: 0 }]}>
+                  Tipo
+                </Text>
+              </View>
+              
+              {/* Seletor de Tipo (Pizza) */}
+              <View style={{ flexDirection: 'row', backgroundColor: dark ? '#334155' : '#f1f5f9', borderRadius: 8, padding: 2, flexShrink: 0 }}>
+                {(['expense', 'income'] as const).map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    onPress={() => setPieType(type)}
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      backgroundColor: pieType === type ? (type === 'expense' ? '#ef4444' : '#22c55e') : 'transparent',
+                      borderRadius: 6,
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: pieType === type ? '#fff' : textSub }}>
+                      {type === 'expense' ? 'Despesas' : 'Receitas'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
               <PieChart
                 data={pieData}
@@ -244,7 +272,7 @@ export default function DashboardScreen() {
                   <View style={{ alignItems: 'center' }}>
                     <Text style={{ fontSize: 11, color: dark ? '#94a3b8' : '#64748b' }}>Total</Text>
                     <Text style={{ fontSize: 14, fontWeight: '700', color: dark ? '#f1f5f9' : '#0f172a' }}>
-                      {formatCurrency(totalExpense)}
+                      {formatCurrency(pieType === 'expense' ? totalExpense : totalIncome)}
                     </Text>
                   </View>
                 )}
