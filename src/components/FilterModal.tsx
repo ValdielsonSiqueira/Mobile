@@ -1,19 +1,18 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+import { Calendar, Check, RotateCcw, X } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Modal, 
-  TouchableOpacity, 
+import {
+  Modal,
   ScrollView,
-  Dimensions
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
-import { X, Calendar, Check, RotateCcw } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
 import { CATEGORIES } from '../utils/categories';
-import { format } from 'date-fns';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface FilterModalProps {
   visible: boolean;
@@ -32,6 +31,17 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
   
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const [shouldRender, setShouldRender] = useState(visible);
+
+  React.useEffect(() => {
+    if (visible) {
+      setShouldRender(true);
+    } else {
+      const timer = setTimeout(() => setShouldRender(false), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
 
   const bgColor = dark ? '#1e293b' : '#ffffff';
   const textMain = dark ? '#f1f5f9' : '#0f172a';
@@ -53,101 +63,121 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
     onClose();
   };
 
-  if (!visible) return null;
+  if (!shouldRender && !visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+    <Modal 
+      transparent 
+      visible={visible || shouldRender} 
+      animationType="none" 
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <Animated.View 
-        entering={FadeIn} 
-        exiting={FadeOut}
+        entering={FadeIn.duration(200)} 
+        exiting={FadeOut.duration(200)}
         style={styles.overlay}
       >
-        <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity 
+          style={styles.dismissArea} 
+          activeOpacity={1}
+          onPress={onClose} 
+        />
         
-        <Animated.View 
-          entering={SlideInDown.springify().damping(20)} 
-          exiting={SlideOutDown}
-          style={[styles.container, { backgroundColor: bgColor }]}
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: textMain }]}>Filtros Avançados</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={24} color={textSub} />
-            </TouchableOpacity>
-          </View>
+        {visible && (
+          <Animated.View 
+            entering={SlideInDown.springify().damping(28).stiffness(250).mass(0.7)} 
+            exiting={SlideOutDown.duration(200)}
+            style={[styles.container, { backgroundColor: bgColor }]}
+          >
+            <View style={styles.header}>
+              <Text style={[styles.title, { color: textMain }]}>Filtros Avançados</Text>
+              <TouchableOpacity onPress={onClose} haptic-feedback="light" style={styles.closeBtn}>
+                <X size={24} color={textSub} />
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            
-            {/* Seção Categorias */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: textMain }]}>Categoria</Text>
-              <View style={styles.categoryGrid}>
-                {CATEGORIES.map((cat) => (
-                  <TouchableOpacity
-                    key={cat.value}
-                    onPress={() => setSelectedCategory(selectedCategory === cat.value ? undefined : cat.value)}
+            <ScrollView 
+              showsVerticalScrollIndicator={false} 
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: textMain }]}>Categoria</Text>
+                <View style={styles.categoryGrid}>
+                  {CATEGORIES.map((cat) => (
+                    <TouchableOpacity
+                      key={cat.value}
+                      onPress={() => setSelectedCategory(selectedCategory === cat.value ? undefined : cat.value)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.categoryChip,
+                        { backgroundColor: selectedCategory === cat.value ? cat.color : (dark ? '#334155' : '#f1f5f9') }
+                      ]}
+                    >
+                      <Text style={[
+                        styles.categoryText,
+                        { color: selectedCategory === cat.value ? '#fff' : textSub }
+                      ]}>
+                        {cat.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: textMain }]}>Período</Text>
+                <View style={styles.dateRow}>
+                  <TouchableOpacity 
+                    onPress={() => setShowStartPicker(true)}
+                    activeOpacity={0.7}
                     style={[
-                      styles.categoryChip,
-                      { backgroundColor: selectedCategory === cat.value ? cat.color : (dark ? '#334155' : '#f1f5f9') }
+                      styles.datePicker, 
+                      { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }
                     ]}
                   >
-                    <Text style={[
-                      styles.categoryText,
-                      { color: selectedCategory === cat.value ? '#fff' : textSub }
-                    ]}>
-                      {cat.label}
+                    <Calendar size={18} color={textSub} />
+                    <Text style={[styles.dateText, { color: startDate ? textMain : textSub }]}>
+                      {startDate ? format(startDate, 'dd/MM/yyyy') : 'Início'}
                     </Text>
                   </TouchableOpacity>
-                ))}
+
+                  <TouchableOpacity 
+                    onPress={() => setShowEndPicker(true)}
+                    activeOpacity={0.7}
+                    style={[
+                      styles.datePicker, 
+                      { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }
+                    ]}
+                  >
+                    <Calendar size={18} color={textSub} />
+                    <Text style={[styles.dateText, { color: endDate ? textMain : textSub }]}>
+                      {endDate ? format(endDate, 'dd/MM/yyyy') : 'Fim'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
+
+            </ScrollView>
+
+            <View style={[styles.footer, { borderTopColor: borderColor }]}>
+              <TouchableOpacity onPress={handleReset} style={styles.resetBtn}>
+                <RotateCcw size={20} color={textSub} />
+                <Text style={[styles.resetText, { color: textSub }]}>Limpar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleApply} style={[styles.applyBtn, { backgroundColor: '#3b82f6' }]}>
+                <Check size={20} color="#fff" />
+                <Text style={styles.applyText}>Aplicar Filtros</Text>
+              </TouchableOpacity>
             </View>
 
-            {/* Seção Período */}
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: textMain }]}>Período</Text>
-              <View style={styles.dateRow}>
-                <TouchableOpacity 
-                  onPress={() => setShowStartPicker(true)}
-                  style={[styles.datePicker, { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }]}
-                >
-                  <Calendar size={18} color={textSub} />
-                  <Text style={[styles.dateText, { color: startDate ? textMain : textSub }]}>
-                    {startDate ? format(startDate, 'dd/MM/yyyy') : 'Início'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  onPress={() => setShowEndPicker(true)}
-                  style={[styles.datePicker, { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }]}
-                >
-                  <Calendar size={18} color={textSub} />
-                  <Text style={[styles.dateText, { color: endDate ? textMain : textSub }]}>
-                    {endDate ? format(endDate, 'dd/MM/yyyy') : 'Fim'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-          </ScrollView>
-
-          {/* Footer Actions */}
-          <View style={[styles.footer, { borderTopColor: borderColor }]}>
-            <TouchableOpacity onPress={handleReset} style={styles.resetBtn}>
-              <RotateCcw size={20} color={textSub} />
-              <Text style={[styles.resetText, { color: textSub }]}>Limpar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={handleApply} style={[styles.applyBtn, { backgroundColor: '#3b82f6' }]}>
-              <Check size={20} color="#fff" />
-              <Text style={styles.applyText}>Aplicar Filtros</Text>
-            </TouchableOpacity>
-          </View>
-
-        </Animated.View>
+          </Animated.View>
+        )}
       </Animated.View>
 
-      {/* Date Pickers */}
       {showStartPicker && (
         <DateTimePicker
           value={startDate || new Date()}

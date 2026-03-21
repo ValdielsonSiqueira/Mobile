@@ -1,36 +1,31 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import {
-  collection,
   addDoc,
-  updateDoc,
+  collection,
   deleteDoc,
   doc,
-  query,
-  orderBy,
-  getDocs,
   DocumentSnapshot,
-  startAfter,
+  getDocs,
   limit,
+  orderBy,
+  query,
   QueryConstraint,
+  startAfter,
+  updateDoc,
   where,
 } from 'firebase/firestore';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { db } from '../firebase/config';
-import { useAuth } from './AuthContext';
 import { Transaction, TransactionInput } from '../types/transaction';
+import { useAuth } from './AuthContext';
 
 const PAGE_SIZE = 20;
 
-/**
- * Normaliza um documento do Firestore para o formato Transaction.
- * Compatível com dados legados que usam amount+/- sem campo `type`.
- */
 function normalizeTransaction(id: string, data: any): Transaction {
   const safeAmount = (val: any) => {
     const num = Number(val);
     return isNaN(num) ? 0 : num;
   };
 
-  // Dados legados: sem campo `type`, amount pode ser negativo
   if (!data.type) {
     const rawAmount = safeAmount(data.amount);
     return {
@@ -44,7 +39,6 @@ function normalizeTransaction(id: string, data: any): Transaction {
       createdAt: data.createdAt,
     };
   }
-  // Dados novos: com campo `type`
   return {
     id,
     ...data,
@@ -68,13 +62,9 @@ interface TransactionContextType {
   loadingMore: boolean;
   hasMore: boolean;
   error: string | null;
-
-  /** Totais calculados */
   totalIncome: number;
   totalExpense: number;
   balance: number;
-
-  /** Ações */
   fetchTransactions: (filters?: TransactionFilters) => Promise<void>;
   fetchMore: () => Promise<void>;
   addTransaction: (data: TransactionInput) => Promise<string>;
@@ -103,17 +93,43 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   const [lastDoc, setLastDoc] = useState<DocumentSnapshot | null>(null);
   const [currentFilters, setCurrentFilters] = useState<TransactionFilters>({});
 
-  // ─── Totais derivados ────────────────────────────────────────────────────────
   const filteredTransactions = useMemo(() => {
-    // Filtros de Tipo, Categoria e Data agora são via Serviço (Firestore)
-    // Apenas a busca (search) é feita localmente pois o Firestore não suporta nativamente
-    if (!currentFilters.search) return transactions;
-    const term = currentFilters.search.toLowerCase();
-    return transactions.filter(t => 
-      t.description.toLowerCase().includes(term) || 
-      t.category.toLowerCase().includes(term)
-    );
-  }, [transactions, currentFilters.search]);
+    return transactions.filter(t => {
+      if (currentFilters.search) {
+        const term = currentFilters.search.toLowerCase();
+        const matchesSearch = t.description.toLowerCase().includes(term) || 
+                            t.category.toLowerCase().includes(term);
+        if (!matchesSearch) return false;
+      }
+
+      if (currentFilters.type && currentFilters.type !== 'all') {
+        if (t.type !== currentFilters.type) return false;
+      }
+      if (currentFilters.category) {
+        if (t.category !== currentFilters.category) return false;
+      }
+
+      if (currentFilters.startDate) {
+        const txDate = new Date(t.date);
+        if (txDate < currentFilters.startDate) return false;
+      }
+      if (currentFilters.endDate) {
+        const txDate = new Date(t.date);
+        const endOfSelectedContent = new Date(currentFilters.endDate);
+        endOfSelectedContent.setHours(23, 59, 59, 999);
+        if (txDate > endOfSelectedContent) return false;
+      }
+
+      return true;
+    });
+  }, [
+    transactions, 
+    currentFilters.search, 
+    currentFilters.type, 
+    currentFilters.category, 
+    currentFilters.startDate, 
+    currentFilters.endDate
+  ]);
 
   const totalIncome = transactions.reduce(
     (acc, t) => (t.type === 'income' ? acc + t.amount : acc),
@@ -125,7 +141,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   );
   const balance = totalIncome - totalExpense;
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────────
   const baseCollection = useCallback(
     () => collection(db, 'users', user!.uid, 'transactions'),
     [user]
@@ -153,7 +168,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     return constraints;
   };
 
-  // ─── Fetch (primeira página) ──────────────────────────────────────────────────
   const fetchTransactions = useCallback(
     async (filters: TransactionFilters = {}) => {
       if (!user) return;
@@ -182,7 +196,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     [user, baseCollection]
   );
 
-  // ─── Fetch mais (paginação) ───────────────────────────────────────────────────
   const fetchMore = useCallback(async () => {
     if (!user || !hasMore || loadingMore || !lastDoc) return;
     setLoadingMore(true);
@@ -205,7 +218,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     }
   }, [user, hasMore, loadingMore, lastDoc, currentFilters, baseCollection]);
 
-  // ─── CRUD ─────────────────────────────────────────────────────────────────────
   const addTransaction = useCallback(
     async (data: TransactionInput): Promise<string> => {
       if (!user) throw new Error('Usuário não autenticado.');
@@ -247,7 +259,6 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
 
   const refresh = useCallback(() => fetchTransactions(currentFilters), [fetchTransactions, currentFilters]);
 
-  // ─── Auto-fetch quando user loga ──────────────────────────────────────────────
   useEffect(() => {
     if (user) {
       fetchTransactions();

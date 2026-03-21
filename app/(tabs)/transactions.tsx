@@ -162,6 +162,8 @@ export default function TransactionsScreen() {
             <TouchableOpacity
               key={type}
               onPress={() => handleTypeChange(type)}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              activeOpacity={0.7}
               style={[
                 styles.filterChip,
                 { backgroundColor: activeType === type ? '#3b82f6' : (dark ? '#1e293b' : '#fff') },
@@ -178,6 +180,8 @@ export default function TransactionsScreen() {
           ))}
           <TouchableOpacity 
             onPress={() => setShowFilterModal(true)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            activeOpacity={0.6}
             style={[
               styles.filterBtn, 
               { borderColor, borderWidth: 1 },
