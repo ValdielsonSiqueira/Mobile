@@ -43,9 +43,9 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
     }
   }, [visible]);
 
+  const textSub = dark ? '#94a3b8' : '#64748b';
   const bgColor = dark ? '#1e293b' : '#ffffff';
   const textMain = dark ? '#f1f5f9' : '#0f172a';
-  const textSub = dark ? '#94a3b8' : '#64748b';
   const borderColor = dark ? '#334155' : '#e2e8f0';
 
   const handleReset = () => {
@@ -113,13 +113,11 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                       activeOpacity={0.7}
                       style={[
                         styles.categoryChip,
-                        { backgroundColor: selectedCategory === cat.value ? cat.color : (dark ? '#334155' : '#f1f5f9') }
+                        { backgroundColor: selectedCategory === cat.value ? cat.color : undefined }
                       ]}
+                      className={selectedCategory !== cat.value ? "bg-surface-secondary" : ""}
                     >
-                      <Text style={[
-                        styles.categoryText,
-                        { color: selectedCategory === cat.value ? '#fff' : textSub }
-                      ]}>
+                      <Text style={styles.categoryText} className={selectedCategory === cat.value ? "text-white" : "text-text-sub"}>
                         {cat.label}
                       </Text>
                     </TouchableOpacity>
@@ -133,10 +131,7 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                   <TouchableOpacity 
                     onPress={() => setShowStartPicker(true)}
                     activeOpacity={0.7}
-                    style={[
-                      styles.datePicker, 
-                      { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }
-                    ]}
+                    style={[styles.datePicker, { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }]}
                   >
                     <Calendar size={18} color={textSub} />
                     <Text style={[styles.dateText, { color: startDate ? textMain : textSub }]}>
@@ -147,10 +142,7 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                   <TouchableOpacity 
                     onPress={() => setShowEndPicker(true)}
                     activeOpacity={0.7}
-                    style={[
-                      styles.datePicker, 
-                      { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }
-                    ]}
+                    style={[styles.datePicker, { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }]}
                   >
                     <Calendar size={18} color={textSub} />
                     <Text style={[styles.dateText, { color: endDate ? textMain : textSub }]}>
@@ -168,7 +160,7 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                 <Text style={[styles.resetText, { color: textSub }]}>Limpar</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleApply} style={[styles.applyBtn, { backgroundColor: '#3b82f6' }]}>
+              <TouchableOpacity onPress={handleApply} style={styles.applyBtn} className="bg-primary">
                 <Check size={20} color="#fff" />
                 <Text style={styles.applyText}>Aplicar Filtros</Text>
               </TouchableOpacity>

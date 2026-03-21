@@ -29,9 +29,9 @@ export function ConfirmationModal({
 
   if (!visible) return null;
 
+  const textSub = dark ? '#94a3b8' : '#64748b'; 
   const bgColor = dark ? '#1e293b' : '#ffffff';
   const textMain = dark ? '#f1f5f9' : '#0f172a';
-  const textSub = dark ? '#94a3b8' : '#64748b';
   const overlayColor = 'rgba(0,0,0,0.6)';
 
   const getIcon = () => {
@@ -42,13 +42,14 @@ export function ConfirmationModal({
     }
   };
 
-  const getConfirmColor = () => {
+  const getThemeClasses = () => {
     switch (type) {
-      case 'delete': return '#ef4444';
-      case 'warning': return '#f59e0b';
-      default: return '#3b82f6';
+      case 'delete': return { wrapper: 'bg-danger/15', button: 'bg-danger shadow-danger' };
+      case 'warning': return { wrapper: 'bg-warning/15', button: 'bg-warning shadow-warning' };
+      default: return { wrapper: 'bg-primary/15', button: 'bg-primary shadow-primary' };
     }
   };
+  const themeClasses = getThemeClasses();
 
   return (
     <Modal transparent visible={visible} animationType="none" onRequestClose={onCancel}>
@@ -64,7 +65,7 @@ export function ConfirmationModal({
           exiting={FadeOutDown}
           style={[styles.modalContainer, { backgroundColor: bgColor }]}
         >
-          <View style={[styles.iconWrapper, { backgroundColor: getConfirmColor() + '15' }]}>
+          <View style={styles.iconWrapper} className={themeClasses.wrapper}>
             {getIcon()}
           </View>
 
@@ -81,7 +82,8 @@ export function ConfirmationModal({
 
             <TouchableOpacity 
               onPress={onConfirm} 
-              style={[styles.button, styles.confirmButton, { backgroundColor: getConfirmColor() }]}
+              style={[styles.button, styles.confirmButton]}
+              className={themeClasses.button}
             >
               <Text style={[styles.buttonText, styles.confirmText]}>{confirmLabel}</Text>
             </TouchableOpacity>

@@ -12,25 +12,19 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon: Icon, title, description, actionLabel, onAction }: EmptyStateProps) {
-  const { colorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
-
-  const textColor = dark ? '#f1f5f9' : '#0f172a';
-  const subTextColor = dark ? '#94a3b8' : '#64748b';
-  const bgColor = dark ? '#1e293b' : '#f1f5f9';
-
   return (
     <View style={styles.container}>
-      <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
-        <Icon size={48} color={dark ? '#3b82f6' : '#2563eb'} />
+      <View className="bg-surface" style={styles.iconContainer}>
+        <Icon size={48} className="text-primary" />
       </View>
       
-      <Text style={[styles.title, { color: textColor }]}>{title}</Text>
-      <Text style={[styles.description, { color: subTextColor }]}>{description}</Text>
+      <Text className="text-text-main" style={styles.title}>{title}</Text>
+      <Text className="text-text-sub" style={styles.description}>{description}</Text>
 
       {actionLabel && onAction && (
         <TouchableOpacity 
           style={styles.button}
+          className="bg-primary shadow-primary"
           onPress={onAction}
         >
           <Plus size={20} color="#fff" style={{ marginRight: 8 }} />
@@ -69,13 +63,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   button: {
-    backgroundColor: '#3b82f6',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 16,
-    shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

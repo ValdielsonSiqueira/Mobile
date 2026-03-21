@@ -26,9 +26,9 @@ const ICONS = {
 };
 
 const BG_CLASSES: Record<ToastType, string> = {
-  success: 'border-green-500',
-  error: 'border-red-500',
-  warning: 'border-amber-500',
+  success: 'border-success',
+  error: 'border-danger',
+  warning: 'border-warning',
 };
 
 export function Toast({ visible, message, type = 'success', duration = 3000, onHide }: ToastProps) {
@@ -60,10 +60,10 @@ export function Toast({ visible, message, type = 'success', duration = 3000, onH
   return (
     <Animated.View
       style={animatedStyle}
-      className={`absolute top-14 left-4 right-4 z-50 flex-row items-center gap-3 bg-white dark:bg-slate-800 border-l-4 ${BG_CLASSES[type]} rounded-xl p-4 shadow-lg`}
+      className={`absolute top-14 left-4 right-4 z-50 flex-row items-center gap-3 bg-surface border-l-4 ${BG_CLASSES[type]} rounded-xl p-4 shadow-lg`}
     >
       {ICONS[type]}
-      <Text className="flex-1 text-slate-800 dark:text-slate-100 font-medium">{message}</Text>
+      <Text className="flex-1 text-text-main font-medium">{message}</Text>
     </Animated.View>
   );
 }

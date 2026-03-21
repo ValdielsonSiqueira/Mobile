@@ -229,7 +229,7 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </Link>
 
-        {pieData.length > 0 && (
+        {transactions.length > 0 && (
           <Animated.View style={[pieAnim, styles.chartCard, { backgroundColor: cardBg }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <View style={{ flex: 1 }}>
@@ -259,21 +259,29 @@ export default function DashboardScreen() {
             </View>
 
             <View style={{ alignItems: 'center', paddingVertical: 8 }}>
-              <PieChart
-                data={pieData}
-                donut
-                radius={90}
-                innerRadius={54}
-                innerCircleColor={cardBg}
-                centerLabelComponent={() => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 11, color: dark ? '#94a3b8' : '#64748b' }}>Total</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: dark ? '#f1f5f9' : '#0f172a' }}>
-                      {hideValues ? '••••••••' : formatCurrency(pieType === 'expense' ? totalExpense : totalIncome)}
-                    </Text>
-                  </View>
-                )}
-              />
+              {pieData.length > 0 ? (
+                <PieChart
+                  data={pieData}
+                  donut
+                  radius={90}
+                  innerRadius={54}
+                  innerCircleColor={cardBg}
+                  centerLabelComponent={() => (
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={{ fontSize: 11, color: dark ? '#94a3b8' : '#64748b' }}>Total</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: dark ? '#f1f5f9' : '#0f172a' }}>
+                        {hideValues ? '••••••••' : formatCurrency(pieType === 'expense' ? totalExpense : totalIncome)}
+                      </Text>
+                    </View>
+                  )}
+                />
+              ) : (
+                <View style={{ height: 180, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: textSub, fontSize: 14 }}>
+                    Nenhuma {pieType === 'expense' ? 'despesa' : 'receita'}.
+                  </Text>
+                </View>
+              )}
             </View>
             <View style={{ gap: 6, marginTop: 4 }}>
               {pieData.map((item, i) => (

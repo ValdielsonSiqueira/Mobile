@@ -52,23 +52,18 @@ export function LoadingScreen() {
     opacity: interpolate(opacity.value, [0.3, 1], [0.1, 0.5]),
   }));
 
-  const bgColor = dark ? '#0f172a' : '#f8fafc';
-  const textColor = dark ? '#f1f5f9' : '#0f172a';
-  const accentColor = '#3b82f6';
-
   return (
-    <View style={[styles.container, { backgroundColor: bgColor }]}>
+    <View style={styles.container} className="bg-background">
       <View style={styles.logoContainer}>
-        <Animated.View style={[styles.ring, { borderColor: accentColor }, ringStyle]} />
+        <Animated.View style={styles.ring} className="border-primary" />
         
-        <Animated.View style={[styles.logoBox, { backgroundColor: accentColor }, logoStyle]}>
-          <Wallet size={40} color="#fff" />
-        </Animated.View>
+        <Animated.View style={styles.logoBox} className="bg-primary shadow-primary" />
+          <Wallet size={40} color="#fff" style={{zIndex: 3, position: 'absolute'}} />
       </View>
 
       <Animated.View style={{ opacity }}>
-        <Text style={[styles.title, { color: textColor }]}>FinanceApp</Text>
-        <Text style={[styles.subtitle, { color: dark ? '#94a3b8' : '#64748b' }]}>
+        <Text style={styles.title} className="text-text-main">FinanceApp</Text>
+        <Text style={styles.subtitle} className="text-text-sub">
           Organizando sua vida financeira...
         </Text>
       </Animated.View>
@@ -96,10 +91,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
     elevation: 8,
   },
   ring: {
