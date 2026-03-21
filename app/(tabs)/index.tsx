@@ -1,33 +1,31 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { format, getMonth, getYear, subMonths } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Link, useRouter } from 'expo-router';
+import { Eye, EyeOff, Moon, PlusCircle, Sun, TrendingDown, TrendingUp, Wallet } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
   Animated,
   Dimensions,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { PieChart, BarChart } from 'react-native-gifted-charts';
-import { useColorScheme } from 'nativewind';
-import { Moon, Sun, PlusCircle, TrendingUp, TrendingDown, Wallet, Eye, EyeOff } from 'lucide-react-native';
+import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { CategoryBadge } from '../../src/components/CategoryBadge';
+import { EmptyState } from '../../src/components/EmptyState';
 import { useTransactions } from '../../src/contexts/TransactionContext';
 import { getCategoryColor, getCategoryLabel } from '../../src/utils/categories';
-import { format, subMonths, getYear, getMonth } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { EmptyState } from '../../src/components/EmptyState';
-import { CategoryBadge } from '../../src/components/CategoryBadge';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// ─── Utilitários ───────────────────────────────────────────────────────────────
 function formatCurrency(val: number) {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// ─── Hook de animação de entrada ──────────────────────────────────────────────
 function useFadeSlideIn(delay = 0) {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(24)).current;
@@ -53,7 +51,6 @@ function useFadeSlideIn(delay = 0) {
   return { opacity, transform: [{ translateY }] };
 }
 
-// ─── Componente: Card de Sumário ──────────────────────────────────────────────
 interface SummaryCardProps {
   label: string;
   value: number;
@@ -76,7 +73,6 @@ function SummaryCard({ label, value, color, icon, animStyle, dark, hideValues }:
   );
 }
 
-// ─── Tela Principal ───────────────────────────────────────────────────────────
 export default function DashboardScreen() {
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useColorScheme();
@@ -87,7 +83,6 @@ export default function DashboardScreen() {
   const [pieType, setPieType] = useState<'income' | 'expense'>('expense');
   const { transactions, loading, balance, totalIncome, totalExpense, refresh } = useTransactions();
 
-  // Animações escalonadas
   const headerAnim   = useFadeSlideIn(0);
   const balanceAnim  = useFadeSlideIn(100);
   const cardsAnim    = useFadeSlideIn(200);
@@ -95,7 +90,6 @@ export default function DashboardScreen() {
   const barAnim      = useFadeSlideIn(400);
   const recentAnim   = useFadeSlideIn(500);
 
-  // ── Dados para o gráfico de pizza (top 5 categorias) ───────────────────────
   const pieData = useMemo(() => {
     const list = transactions.filter((t) => t.type === pieType);
     const byCategory: Record<string, number> = {};
@@ -113,12 +107,11 @@ export default function DashboardScreen() {
     }));
   }, [transactions, pieType]);
 
-  // ── Dados para gráfico de barras (dinâmico por período) ───────────────────
   const barData = useMemo(() => {
     return Array.from({ length: barPeriod }, (_, i) => {
       const d = subMonths(new Date(), (barPeriod - 1) - i);
       const targetYear  = getYear(d);
-      const targetMonth = getMonth(d); // 0-indexed
+      const targetMonth = getMonth(d);
 
       const month = transactions.filter((t) => {
         try {
@@ -138,7 +131,6 @@ export default function DashboardScreen() {
     });
   }, [transactions, barPeriod]);
 
-  // FlatList-style bar data (grouped bars)
   const groupedBarData = useMemo(() =>
     barData.map((m) => [
       { value: m.income,  label: m.label, frontColor: '#22c55e', spacing: 4, labelWidth: 36, labelTextStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 11 } },
@@ -146,7 +138,6 @@ export default function DashboardScreen() {
     ]).flat()
   , [barData, dark]);
 
-  // Últimas 5 transações
   const recentTransactions = useMemo(() => [...transactions].slice(0, 5), [transactions]);
 
   const bgColor  = dark ? '#0f172a' : '#f8fafc';
@@ -160,7 +151,6 @@ export default function DashboardScreen() {
       refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={dark ? '#fff' : '#000'} />}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
-      {/* ── Header ─────────────────────────────────── */}
       <Animated.View style={[headerAnim, { paddingHorizontal: 20, paddingTop: 56, marginBottom: 8 }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>
@@ -186,7 +176,6 @@ export default function DashboardScreen() {
 
       <View style={{ paddingHorizontal: 20 }}>
 
-        {/* ── Card de Saldo ─────────────────────────── */}
         <Animated.View style={[balanceAnim, styles.balanceCard]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
             <Wallet size={18} color="#bfdbfe" />
@@ -200,7 +189,6 @@ export default function DashboardScreen() {
           </Text>
         </Animated.View>
 
-        {/* ── Cards Receita / Despesa ───────────────── */}
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
           <SummaryCard
             label="Receitas"
@@ -222,7 +210,6 @@ export default function DashboardScreen() {
           />
         </View>
 
-        {/* ── Botão Nova Transação ──────────────────── */}
         <Link href={{ pathname: '/(tabs)/manage-transaction', params: { id: '' } }} asChild>
           <TouchableOpacity
             style={{
@@ -242,7 +229,6 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </Link>
 
-        {/* ── Gráfico: Por categoria (Pizza) ─ */}
         {pieData.length > 0 && (
           <Animated.View style={[pieAnim, styles.chartCard, { backgroundColor: cardBg }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
@@ -252,7 +238,6 @@ export default function DashboardScreen() {
                 </Text>
               </View>
               
-              {/* Seletor de Tipo (Pizza) */}
               <View style={{ flexDirection: 'row', backgroundColor: dark ? '#334155' : '#f1f5f9', borderRadius: 8, padding: 2, flexShrink: 0 }}>
                 {(['expense', 'income'] as const).map((type) => (
                   <TouchableOpacity
@@ -290,7 +275,6 @@ export default function DashboardScreen() {
                 )}
               />
             </View>
-            {/* Legenda */}
             <View style={{ gap: 6, marginTop: 4 }}>
               {pieData.map((item, i) => (
                 <View key={i} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -307,7 +291,6 @@ export default function DashboardScreen() {
           </Animated.View>
         )}
 
-        {/* ── Gráfico: Receitas x Despesas por período (Barras) */}
         <Animated.View style={[barAnim, styles.chartCard, { backgroundColor: cardBg }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <View>
@@ -315,7 +298,6 @@ export default function DashboardScreen() {
               <Text style={{ color: textSub, fontSize: 12 }}>Tendência mensal</Text>
             </View>
             
-            {/* Seletor de Período */}
             <View style={{ flexDirection: 'row', backgroundColor: dark ? '#334155' : '#f1f5f9', borderRadius: 8, padding: 2 }}>
               {[3, 6, 12].map((p) => (
                 <TouchableOpacity
@@ -359,7 +341,6 @@ export default function DashboardScreen() {
               xAxisLabelTextStyle={{ color: textSub, fontSize: 10, width: 40, textAlign: 'center' }}
             />
           </View>
-          {/* Legenda */}
           <View style={{ flexDirection: 'row', gap: 16, marginTop: 12, justifyContent: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#22c55e' }} />
@@ -372,7 +353,6 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
-        {/* ── Transações Recentes ───────────────────── */}
         <Animated.View style={recentAnim}>
           <Text style={[styles.chartTitle, { color: textMain, marginBottom: 12 }]}>Transações Recentes</Text>
 
@@ -415,7 +395,6 @@ export default function DashboardScreen() {
   );
 }
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   balanceCard: {
     backgroundColor: '#2563eb',

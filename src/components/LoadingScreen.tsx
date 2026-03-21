@@ -1,17 +1,16 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withRepeat, 
-  withTiming, 
-  Easing,
-  interpolate,
-  withSequence,
-  withDelay
-} from 'react-native-reanimated';
 import { Wallet } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming
+} from 'react-native-reanimated';
 
 export function LoadingScreen() {
   const { colorScheme } = useColorScheme();
@@ -60,10 +59,8 @@ export function LoadingScreen() {
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
       <View style={styles.logoContainer}>
-        {/* Anel de Rotação */}
         <Animated.View style={[styles.ring, { borderColor: accentColor }, ringStyle]} />
         
-        {/* Logo Central */}
         <Animated.View style={[styles.logoBox, { backgroundColor: accentColor }, logoStyle]}>
           <Wallet size={40} color="#fff" />
         </Animated.View>

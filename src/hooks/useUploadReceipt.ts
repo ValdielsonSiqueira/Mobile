@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { useCallback, useState } from 'react';
 import { storage } from '../firebase/config';
 
 interface UploadReceiptResult {
@@ -25,7 +25,6 @@ export function useUploadReceipt() {
       setError(null);
 
       try {
-        // Converte URI local em Blob (Método recomendado para Firebase + RN/Expo)
         const blob = await new Promise<Blob>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.onload = function () {
@@ -70,7 +69,6 @@ export function useUploadReceipt() {
     []
   );
 
-  /** Remove um arquivo do Storage pelo path completo */
   const remove = useCallback(async (storagePath: string) => {
     const storageRef = ref(storage, storagePath);
     await deleteObject(storageRef);

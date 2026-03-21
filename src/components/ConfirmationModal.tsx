@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Dimensions } from 'react-native';
-import Animated, { FadeIn, FadeOut, FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { AlertTriangle, Trash2, X } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeIn, FadeInUp, FadeOut, FadeOutDown } from 'react-native-reanimated';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -64,16 +64,13 @@ export function ConfirmationModal({
           exiting={FadeOutDown}
           style={[styles.modalContainer, { backgroundColor: bgColor }]}
         >
-          {/* Header Icon */}
           <View style={[styles.iconWrapper, { backgroundColor: getConfirmColor() + '15' }]}>
             {getIcon()}
           </View>
 
-          {/* Text Content */}
           <Text style={[styles.title, { color: textMain }]}>{title}</Text>
           <Text style={[styles.description, { color: textSub }]}>{description}</Text>
 
-          {/* Action Buttons */}
           <View style={styles.buttonRow}>
             <TouchableOpacity 
               onPress={onCancel} 
@@ -90,7 +87,6 @@ export function ConfirmationModal({
             </TouchableOpacity>
           </View>
 
-          {/* Optional Close Top Right */}
           <TouchableOpacity onPress={onCancel} style={styles.closeBtn}>
             <X size={20} color={textSub} />
           </TouchableOpacity>

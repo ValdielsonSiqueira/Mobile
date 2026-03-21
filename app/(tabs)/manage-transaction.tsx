@@ -1,48 +1,45 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-  Image,
-  Alert,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useAuth } from '../../src/contexts/AuthContext';
-import { useTransactions } from '../../src/contexts/TransactionContext';
-import { useUploadReceipt } from '../../src/hooks/useUploadReceipt';
-import { CATEGORIES } from '../../src/utils/categories';
-import { Toast } from '../../src/components/Toast';
-import { ConfirmationModal } from '../../src/components/ConfirmationModal';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowLeft,
   Calendar as CalendarIcon,
   Camera,
-  FileText,
   Check,
+  FileText,
+  Plus,
   Trash2,
-  X,
-  Plus
+  X
 } from 'lucide-react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { useColorScheme } from 'nativewind';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import * as z from 'zod';
+import { ConfirmationModal } from '../../src/components/ConfirmationModal';
+import { Toast } from '../../src/components/Toast';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { useTransactions } from '../../src/contexts/TransactionContext';
+import { useUploadReceipt } from '../../src/hooks/useUploadReceipt';
+import { CATEGORIES } from '../../src/utils/categories';
 
 const transactionSchema = z.object({
   description: z.string().min(3, 'A descrição deve ter pelo menos 3 caracteres'),
   amount: z.coerce.number().positive('O valor deve ser maior que zero'),
   type: z.enum(['income', 'expense']),
   category: z.string().min(1, 'Selecione uma categoria'),
-  date: z.string(), // Mais flexível que .datetime()
+  date: z.string(), 
   receiptUrl: z.string().optional(),
 });
 
@@ -110,7 +107,6 @@ export default function ManageTransactionScreen() {
           receiptUrl: tx.receiptUrl,
         });
       } else {
-        // ID presente mas transação não encontrada (pode ter sido deletada)
         setIsEdit(false);
         reset({
           description: '',
@@ -123,7 +119,6 @@ export default function ManageTransactionScreen() {
         setReceiptFile(null);
       }
     } else {
-      // Sem ID = Modo de criação de novo registro
       setIsEdit(false);
       reset({
         description: '',
@@ -180,7 +175,6 @@ export default function ManageTransactionScreen() {
     try {
       let finalReceiptUrl = data.receiptUrl || null;
 
-      // Se houver um novo arquivo de recibo, faz o upload
       if (receiptFile) {
         const uploadResult = await upload(receiptFile.uri, user.uid, receiptFile.name);
         finalReceiptUrl = uploadResult.url;
@@ -199,7 +193,6 @@ export default function ManageTransactionScreen() {
         showToast('Transação salva!', 'success');
       }
 
-      // Limpa os campos e o modo de edição após o sucesso
       setIsEdit(false);
       reset({
         description: '',
@@ -211,7 +204,6 @@ export default function ManageTransactionScreen() {
       });
       setReceiptFile(null);
 
-      // Redireciona para o Histórico após 1s
       setTimeout(() => router.push('/(tabs)/transactions'), 1000);
     } catch (error: any) {
       showToast(error.message || 'Erro ao salvar transação', 'error');
@@ -233,7 +225,6 @@ export default function ManageTransactionScreen() {
       <Toast visible={toast.visible} message={toast.message} type={toast.type} onHide={() => setToast(t => ({ ...t, visible: false }))} />
       
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { borderColor }]}>
             <ArrowLeft size={24} color={textMain} />
@@ -243,7 +234,6 @@ export default function ManageTransactionScreen() {
           </Text>
         </View>
 
-        {/* Tipo Toggle */}
         <View style={[styles.typeContainer, { backgroundColor: cardBg, borderColor }]}>
           <TouchableOpacity 
             onPress={() => setValue('type', 'expense')}
@@ -259,9 +249,7 @@ export default function ManageTransactionScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Formulário */}
         <View style={styles.form}>
-          {/* Valor */}
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: textSub }]}>Valor</Text>
             <Controller
@@ -287,7 +275,6 @@ export default function ManageTransactionScreen() {
             {errors.amount && <Text style={styles.errorText}>{errors.amount.message}</Text>}
           </View>
 
-          {/* Descrição */}
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: textSub }]}>Descrição</Text>
             <Controller
@@ -307,7 +294,6 @@ export default function ManageTransactionScreen() {
           </View>
 
           <View style={styles.row}>
-            {/* Categoria */}
             <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
               <Text style={[styles.label, { color: textSub }]}>Categoria</Text>
               <TouchableOpacity
@@ -322,7 +308,6 @@ export default function ManageTransactionScreen() {
               {errors.category && <Text style={styles.errorText}>{errors.category.message}</Text>}
             </View>
 
-            {/* Data */}
             <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
               <Text style={[styles.label, { color: textSub }]}>Data</Text>
               <TouchableOpacity
@@ -337,7 +322,6 @@ export default function ManageTransactionScreen() {
             </View>
           </View>
 
-          {/* Upload de Recibo */}
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: textSub }]}>Recibo (Opcional)</Text>
             <View style={styles.uploadRow}>
@@ -381,7 +365,6 @@ export default function ManageTransactionScreen() {
           </View>
         </View>
 
-        {/* Botão Salvar */}
         <TouchableOpacity
           onPress={handleSubmit(handleSave, onValidationError)}
           disabled={isSubmitting || uploading}
@@ -411,7 +394,6 @@ export default function ManageTransactionScreen() {
         )}
       </ScrollView>
 
-      {/* Modais / Pickers */}
       <ConfirmationModal
         visible={showDeleteConfirm}
         title="Excluir Transação?"
@@ -423,7 +405,6 @@ export default function ManageTransactionScreen() {
             if (!id) throw new Error('ID da transação não encontrado.');
             await deleteTransaction(id);
             
-            // Limpa os campos após a exclusão
             reset({
               description: '',
               amount: 0,
@@ -446,7 +427,6 @@ export default function ManageTransactionScreen() {
         type="delete"
       />
 
-      {/* Modais / Pickers */}
       {showDatePicker && (
         <DateTimePicker
           value={currentDate}

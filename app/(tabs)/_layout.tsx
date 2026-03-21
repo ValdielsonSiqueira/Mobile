@@ -1,6 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
-import React from 'react';
 import { Home, List, PlusCircle } from 'lucide-react-native';
+import React from 'react';
 
 export default function TabLayout() {
   const router = useRouter();
@@ -9,7 +9,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#3b82f6', // blue-500
+        tabBarActiveTintColor: '#3b82f6',
       }}>
       <Tabs.Screen
         name="index"

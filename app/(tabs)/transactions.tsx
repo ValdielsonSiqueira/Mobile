@@ -1,32 +1,30 @@
-import React, { useState, useCallback } from 'react';
-import { useRouter } from 'expo-router';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-  RefreshControl,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
-import { useColorScheme } from 'nativewind';
-import { 
-  Search, 
-  SlidersHorizontal, 
-  ArrowUpRight, 
-  ArrowDownLeft, 
-  Calendar,
-  Filter
-} from 'lucide-react-native';
-import { useTransactions } from '../../src/contexts/TransactionContext';
-import { getCategoryColor, getCategoryLabel } from '../../src/utils/categories';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { EmptyState } from '../../src/components/EmptyState';
+import { useRouter } from 'expo-router';
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  Filter,
+  Search,
+  SlidersHorizontal
+} from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { CategoryBadge } from '../../src/components/CategoryBadge';
+import { EmptyState } from '../../src/components/EmptyState';
 import { FilterModal } from '../../src/components/FilterModal';
 import { Toast } from '../../src/components/Toast';
+import { useTransactions } from '../../src/contexts/TransactionContext';
 
 export default function TransactionsScreen() {
   const router = useRouter();
@@ -59,7 +57,6 @@ export default function TransactionsScreen() {
     setToast({ visible: true, message, type });
   };
 
-  // Monitorar erros do contexto (ex: falta de índice no Firestore)
   React.useEffect(() => {
     if (contextError) {
       showToast(contextError, 'error');
@@ -141,7 +138,6 @@ export default function TransactionsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
-      {/* Header com Busca */}
       <View style={[styles.header, { borderBottomColor: borderColor }]}>
         <Text style={[styles.title, { color: textMain }]}>Minhas Transações</Text>
         
@@ -156,7 +152,6 @@ export default function TransactionsScreen() {
           />
         </View>
 
-        {/* Filtros de Tipo */}
         <View style={styles.filterRow}>
           {(['all', 'income', 'expense'] as const).map((type) => (
             <TouchableOpacity
