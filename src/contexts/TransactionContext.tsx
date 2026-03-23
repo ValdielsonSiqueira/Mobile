@@ -197,14 +197,17 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
   );
 
   const fetchMore = useCallback(async () => {
-    if (!user || !hasMore || loadingMore || !lastDoc) return;
+    if (!user || !hasMore || loading || loadingMore || !lastDoc) return;
     setLoadingMore(true);
     try {
       const constraints = buildConstraints(currentFilters, lastDoc);
       const q = query(baseCollection(), ...constraints);
       const snapshot = await getDocs(q);
       const docs = snapshot.docs.map((d) => normalizeTransaction(d.id, d.data()));
-      setTransactions((prev) => [...prev, ...docs]);
+      setTransactions((prev) => {
+        const newDocs = docs.filter(newDoc => !prev.some(p => p.id === newDoc.id));
+        return [...prev, ...newDocs];
+      });
       setLastDoc(snapshot.docs[snapshot.docs.length - 1] ?? null);
       setHasMore(snapshot.docs.length === PAGE_SIZE);
     } catch (e: any) {
@@ -216,7 +219,7 @@ export function TransactionProvider({ children }: { children: React.ReactNode })
     } finally {
       setLoadingMore(false);
     }
-  }, [user, hasMore, loadingMore, lastDoc, currentFilters, baseCollection]);
+  }, [user, hasMore, loading, loadingMore, lastDoc, currentFilters, baseCollection]);
 
   const addTransaction = useCallback(
     async (data: TransactionInput): Promise<string> => {
