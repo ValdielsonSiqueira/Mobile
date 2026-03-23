@@ -1,5 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
-import { Home, List, PlusCircle } from 'lucide-react-native';
+import { Home, List, PlusCircle, User } from 'lucide-react-native';
 import React from 'react';
 
 export default function TabLayout() {
@@ -36,6 +36,13 @@ export default function TabLayout() {
             e.preventDefault();
             router.push({ pathname: '/(tabs)/manage-transaction', params: { id: '' } });
           },
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <User size={24} color={color} />,
         }}
       />
     </Tabs>

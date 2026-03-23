@@ -15,7 +15,7 @@ import {
   Trash2,
   X
 } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
+
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -36,6 +36,7 @@ import { Toast } from '../../src/components/Toast';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTransactions } from '../../src/contexts/TransactionContext';
 import { useUploadReceipt } from '../../src/hooks/useUploadReceipt';
+import { useThemeColors } from '../../src/hooks/useThemeColors';
 import { CATEGORIES } from '../../src/utils/categories';
 
 const transactionSchema = z.object({
@@ -53,9 +54,7 @@ export default function ManageTransactionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const router = useRouter();
-  const { colorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
-  
+  const { dark, bgColor, cardBg, textMain, textSub, borderColor } = useThemeColors();
   const { 
     getTransactionById, 
     addTransaction, 
@@ -239,12 +238,6 @@ export default function ManageTransactionScreen() {
   const onValidationError = () => {
     showToast('Verifique os campos obrigatórios!', 'warning');
   };
-
-  const bgColor = dark ? '#0f172a' : '#f8fafc';
-  const cardBg = dark ? '#1e293b' : '#ffffff';
-  const textMain = dark ? '#f1f5f9' : '#0f172a';
-  const textSub = dark ? '#94a3b8' : '#64748b';
-  const borderColor = dark ? '#334155' : '#e2e8f0';
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>

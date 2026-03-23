@@ -8,7 +8,7 @@ import {
   Search,
   SlidersHorizontal
 } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
+
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -25,12 +25,11 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { FilterModal } from '../../src/components/FilterModal';
 import { Toast } from '../../src/components/Toast';
 import { useTransactions } from '../../src/contexts/TransactionContext';
+import { useThemeColors } from '../../src/hooks/useThemeColors';
 
 export default function TransactionsScreen() {
   const router = useRouter();
-  const { colorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
-  
+  const { dark, bgColor, cardBg, textMain, textSub, borderColor } = useThemeColors();
   const { 
     filteredTransactions, 
     loading, 
@@ -62,12 +61,6 @@ export default function TransactionsScreen() {
       showToast(contextError, 'error');
     }
   }, [contextError]);
-
-  const bgColor = dark ? '#0f172a' : '#f8fafc';
-  const cardBg = dark ? '#1e293b' : '#ffffff';
-  const textMain = dark ? '#f1f5f9' : '#0f172a';
-  const textSub = dark ? '#94a3b8' : '#64748b';
-  const borderColor = dark ? '#334155' : '#e2e8f0';
 
   const handleSearch = (text: string) => {
     setSearchText(text);
