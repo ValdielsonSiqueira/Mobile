@@ -9,6 +9,7 @@ import {
   Calendar as CalendarIcon,
   Camera,
   Check,
+  Eye,
   FileText,
   Plus,
   Trash2,
@@ -19,6 +20,9 @@ import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
+  Image,
+  Linking,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -72,6 +76,8 @@ export default function ManageTransactionScreen() {
   });
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showReceiptViewer, setShowReceiptViewer] = useState(false);
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   const {
     control,
@@ -134,6 +140,26 @@ export default function ManageTransactionScreen() {
 
   const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
     setToast({ visible: true, message, type });
+  };
+
+  const handleViewReceipt = async () => {
+    const url = receiptFile?.uri || watch('receiptUrl');
+    if (!url) return;
+
+    const isPdf = receiptFile 
+      ? receiptFile.type === 'application/pdf'
+      : url.toLowerCase().includes('.pdf');
+
+    if (isPdf) {
+      try {
+        await Linking.openURL(url);
+      } catch (e) {
+        showToast('Não foi possível abrir o anexo.', 'warning');
+      }
+    } else {
+      setViewerUri(url);
+      setShowReceiptViewer(true);
+    }
   };
 
   const pickImage = async () => {
@@ -344,9 +370,12 @@ export default function ManageTransactionScreen() {
             {(receiptFile || watch('receiptUrl')) && (
               <View style={[styles.receiptPreview, { backgroundColor: cardBg, borderColor }]}>
                 <Check size={18} color="#22c55e" />
-                <Text style={[styles.receiptName, { color: textMain }]} numberOfLines={1}>
-                  {receiptFile ? receiptFile.name : 'Recibo Anexado'}
-                </Text>
+                <TouchableOpacity onPress={handleViewReceipt} style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={[styles.receiptName, { color: textMain }]} numberOfLines={1}>
+                    {receiptFile ? receiptFile.name : 'Recibo Anexado'}
+                  </Text>
+                  <Eye size={18} color={textSub} style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => {
                   setReceiptFile(null);
                   setValue('receiptUrl', '');
@@ -471,6 +500,29 @@ export default function ManageTransactionScreen() {
           </View>
         </View>
       )}
+    
+      <Modal
+        visible={showReceiptViewer}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowReceiptViewer(false)}
+      >
+        <View style={styles.viewerOverlay}>
+          <TouchableOpacity 
+            style={styles.viewerCloseBtn} 
+            onPress={() => setShowReceiptViewer(false)}
+          >
+            <X size={28} color="#fff" />
+          </TouchableOpacity>
+          {viewerUri && (
+            <Image 
+              source={{ uri: viewerUri }} 
+              style={styles.viewerImage} 
+              resizeMode="contain" 
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -700,5 +752,27 @@ const styles = StyleSheet.create({
   categoryLabel: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  viewerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerCloseBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 22,
+  },
+  viewerImage: {
+    width: '100%',
+    height: '80%',
   },
 });
