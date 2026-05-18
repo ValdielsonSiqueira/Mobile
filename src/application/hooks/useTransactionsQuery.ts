@@ -1,7 +1,7 @@
 import {
   useInfiniteQuery,
   useMutation,
-  useQueryClient
+  useQueryClient,
 } from "@tanstack/react-query";
 import { useAuth } from "../../contexts/AuthContext";
 import { TransactionFilters } from "../../domain/repositories/ITransactionRepository";
@@ -35,6 +35,7 @@ export function useTransactionsQuery(filters?: TransactionFilters) {
       return lastPage.lastDoc;
     },
     enabled: !!user,
+    retry: false,
   });
 }
 

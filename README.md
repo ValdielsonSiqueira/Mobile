@@ -5,20 +5,25 @@ Aplicativo móvel de controle financeiro desenvolvido em React Native (Expo) par
 ## 🚀 Funcionalidades
 
 - **Autenticação:** Login e Cadastro seguros utilizando Firebase Auth.
-- **Dashboard Interativo:** Visão geral do saldo, total de receitas e despesas.
+- **Segurança de Dados:** Armazenamento criptografado de credenciais/sessão no hardware do dispositivo usando `expo-secure-store`.
+- **Dashboard Interativo:** Visão geral do saldo, total de receitas e despesas com atualizações reativas (sem refresh manual).
 - **Gráficos Dinâmicos:** 
   - Gráfico de pizza (Receitas/Despesas por categoria).
   - Gráfico de barras (Comparativo mensal de receitas x despesas configurável entre 3, 6 e 12 meses).
-- **Gestão de Transações:** Criação, edição e exclusão de transações.
+- **Gestão de Transações:** Criação, edição e exclusão de transações com atualizações otimistas.
+- **Performance:** Paginação inteligente (Lazy Loading / Infinite Scrolling) nas listas e cache local agressivo de requisições.
 - **Upload de Recibos:** Anexo de arquivos de imagens ou PDFs nas transações (Firebase Storage).
 - **Filtros Avançados:** Busca por nome, filtro por tipo (receita/despesa), por categoria e intervalo de datas personalizadas.
 - **Modo Dark/Light:** Interface que se adequa ao tema com alternância manual intuitiva.
-- **Modo Privacidade:** Botão (ícone de olho) para ocultar dados sensíveis, como o salto atual, o montante da transação e seus títulos, com um clique.
+- **Modo Privacidade:** Botão (ícone de olho) para ocultar dados sensíveis.
 
 ## 🛠 Tecnologias Utilizadas
 
 - **[React Native](https://reactnative.dev/)** + **[Expo](https://expo.dev/)** (com Expo Router)
 - **[TypeScript](https://www.typescriptlang.org/)**
+- **Arquitetura & Padrões:** Clean Architecture (Domain, Infrastructure, Application)
+- **Gerenciamento de Estado Avançado:** React Query (@tanstack/react-query) + Zustand
+- **Segurança:** Expo Secure Store (Criptografia Nativa Keychain/Keystore)
 - **Estilização:** NativeWind / Tailwind CSS
 - **Ícones:** Lucide React Native
 - **Formulários:** React Hook Form + Zod (Validação de schemas)
@@ -89,9 +94,12 @@ Abaixo a visão em árvore de como o projeto está padronizado:
 │   └── _layout.tsx       # Root Layout que engloba contextos do App
 ├── assets/               # Imagens e materiais estáticos
 ├── src/                  # Arquitetura e Lógica Principal (Código-fonte)
+│   ├── application/      # Casos de uso e Hooks integrados (Ex: React Query e Zustand)
 │   ├── components/       # Componentes genéricos de UI para reuso (Inputs, Empty States)
-│   ├── contexts/         # Provider de Contextos da aplicação (AuthContext, TransactionContext)
-│   ├── hooks/            # Hooks customizados que desincham componentes (ex: useUploadReceipt)
+│   ├── contexts/         # Provider de Contextos da aplicação (AuthContext)
+│   ├── domain/           # Entidades e Contratos (Interfaces dos Repositórios)
+│   ├── hooks/            # Hooks customizados de interface (ex: useUploadReceipt)
+│   ├── infrastructure/   # Implementações de Banco de Dados, APIs e Segurança (Firebase)
 │   ├── lib/              # Inicializadores isolados (instância do firebase e APIs)
 │   └── utils/            # Funções helpers padronizadas, categorizações e dicionários (Formatadores etc)
 ├── .env                  # Variáveis do SDK do Google/Firebase (ignorado do commit - gitignore)

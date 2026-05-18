@@ -1,7 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { useRouter, useSegments } from 'expo-router';
+import { useRouter, useSegments } from "expo-router";
+import {
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  User,
+} from "firebase/auth";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { auth } from "../firebase/config";
+import { SecureStorageService } from "../infrastructure/security/SecureStorageService";
 
 interface AuthContextType {
   user: User | null;
@@ -26,9 +31,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setIsLoading(false);
+
+      if (firebaseUser) {
+        await SecureStorageService.saveSecureData(
+          "SECURE_USER_SESSION_UID",
+          firebaseUser.uid,
+        );
+        if (firebaseUser.email) {
+          await SecureStorageService.saveSecureData(
+            "SECURE_USER_SESSION_EMAIL",
+            firebaseUser.email,
+          );
+        }
+      }
     });
     return unsub;
   }, []);
@@ -36,16 +54,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup = segments[0] === "(auth)";
 
     if (!user && !inAuthGroup) {
-      router.replace('/(auth)/login');
+      router.replace("/(auth)/login");
     } else if (user && inAuthGroup) {
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     }
   }, [user, segments, isLoading]);
 
   const signOut = async () => {
+    await SecureStorageService.deleteSecureData("SECURE_USER_SESSION_UID");
+    await SecureStorageService.deleteSecureData("SECURE_USER_SESSION_EMAIL");
+
     await firebaseSignOut(auth);
   };
 

@@ -17,7 +17,7 @@ import {
 import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { CategoryBadge } from '../../src/components/CategoryBadge';
 import { EmptyState } from '../../src/components/EmptyState';
-import { useTransactions } from '../../src/contexts/TransactionContext';
+import { useTransactionsQuery } from '../../src/application/hooks/useTransactionsQuery';
 import { getCategoryColor, getCategoryLabel } from '../../src/utils/categories';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -81,7 +81,22 @@ export default function DashboardScreen() {
   const [hideValues, setHideValues] = useState(false);
   const [barPeriod, setBarPeriod] = useState(6);
   const [pieType, setPieType] = useState<'income' | 'expense'>('expense');
-  const { transactions, loading, balance, totalIncome, totalExpense, refresh } = useTransactions();
+  const { data, isLoading: loading, refetch: refresh } = useTransactionsQuery();
+
+  const transactions = useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page.transactions);
+  }, [data]);
+
+  const totalIncome = useMemo(() => 
+    transactions.reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc, 0), 
+  [transactions]);
+
+  const totalExpense = useMemo(() => 
+    transactions.reduce((acc, t) => t.type === 'expense' ? acc + t.amount : acc, 0), 
+  [transactions]);
+
+  const balance = totalIncome - totalExpense;
 
   const headerAnim   = useFadeSlideIn(0);
   const balanceAnim  = useFadeSlideIn(100);

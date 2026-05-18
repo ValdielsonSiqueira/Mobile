@@ -34,7 +34,7 @@ import * as z from 'zod';
 import { ConfirmationModal } from '../../src/components/ConfirmationModal';
 import { Toast } from '../../src/components/Toast';
 import { useAuth } from '../../src/contexts/AuthContext';
-import { useTransactions } from '../../src/contexts/TransactionContext';
+import { useTransactionsQuery, useTransactionMutations } from '../../src/application/hooks/useTransactionsQuery';
 import { useUploadReceipt } from '../../src/hooks/useUploadReceipt';
 import { useThemeColors } from '../../src/hooks/useThemeColors';
 import { CATEGORIES } from '../../src/utils/categories';
@@ -55,12 +55,24 @@ export default function ManageTransactionScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const { dark, bgColor, cardBg, textMain, textSub, borderColor } = useThemeColors();
+  const { data } = useTransactionsQuery();
+  const getTransactionById = React.useCallback((txId: string) => {
+    if (!data) return undefined;
+    for (const page of data.pages) {
+      const tx = page.transactions.find(t => t.id === txId);
+      if (tx) return tx;
+    }
+    return undefined;
+  }, [data]);
+
   const { 
-    getTransactionById, 
     addTransaction, 
     updateTransaction,
-    deleteTransaction 
-  } = useTransactions();
+    deleteTransaction,
+    isAdding,
+    isUpdating,
+    isDeleting
+  } = useTransactionMutations();
   const { upload, uploading, progress } = useUploadReceipt();
 
   const [isEdit, setIsEdit] = useState(false);
@@ -211,7 +223,7 @@ export default function ManageTransactionScreen() {
       };
 
       if (isEdit && id) {
-        await updateTransaction(id, transactionData);
+        await updateTransaction({ id, data: transactionData });
         showToast('Transação atualizada!', 'success');
       } else {
         await addTransaction(transactionData);
@@ -389,14 +401,14 @@ export default function ManageTransactionScreen() {
 
         <TouchableOpacity
           onPress={handleSubmit(handleSave, onValidationError)}
-          disabled={isSubmitting || uploading}
+          disabled={isSubmitting || uploading || isAdding || isUpdating}
           style={[
             styles.saveBtn,
             { backgroundColor: currentType === 'income' ? '#22c55e' : '#ef4444' },
-            (isSubmitting || uploading) && { opacity: 0.6 }
+            (isSubmitting || uploading || isAdding || isUpdating) && { opacity: 0.6 }
           ]}
         >
-          {isSubmitting || uploading ? (
+          {isSubmitting || uploading || isAdding || isUpdating ? (
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.saveBtnText}>
@@ -408,9 +420,10 @@ export default function ManageTransactionScreen() {
         {isEdit && (
           <TouchableOpacity
             onPress={() => setShowDeleteConfirm(true)}
-            style={[styles.deleteBtn, { borderColor }]}
+            disabled={isDeleting}
+            style={[styles.deleteBtn, { borderColor }, isDeleting && { opacity: 0.6 }]}
           >
-            <Trash2 size={20} color="#ef4444" />
+            {isDeleting ? <ActivityIndicator color="#ef4444" /> : <Trash2 size={20} color="#ef4444" />}
             <Text style={styles.deleteBtnText}>Excluir Transação</Text>
           </TouchableOpacity>
         )}

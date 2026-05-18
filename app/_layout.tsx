@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -29,16 +30,20 @@ function RootLayoutContent() {
   );
 }
 
+const queryClient = new QueryClient();
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <TransactionProvider>
-          <RootLayoutContent />
-        </TransactionProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TransactionProvider>
+            <RootLayoutContent />
+          </TransactionProvider>
+        </AuthProvider>
+      </QueryClientProvider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

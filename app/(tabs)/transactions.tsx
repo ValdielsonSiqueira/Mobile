@@ -24,27 +24,47 @@ import { CategoryBadge } from '../../src/components/CategoryBadge';
 import { EmptyState } from '../../src/components/EmptyState';
 import { FilterModal } from '../../src/components/FilterModal';
 import { Toast } from '../../src/components/Toast';
-import { useTransactions } from '../../src/contexts/TransactionContext';
+import { useTransactionsQuery } from '../../src/application/hooks/useTransactionsQuery';
 import { useThemeColors } from '../../src/hooks/useThemeColors';
 
 export default function TransactionsScreen() {
   const router = useRouter();
   const { dark, bgColor, cardBg, textMain, textSub, borderColor } = useThemeColors();
-  const { 
-    filteredTransactions, 
-    loading, 
-    loadingMore, 
-    hasMore, 
-    fetchMore, 
-    refresh,
-    fetchTransactions,
-    error: contextError
-  } = useTransactions();
-
   const [searchText, setSearchText] = useState('');
   const [activeType, setActiveType] = useState<'all' | 'income' | 'expense'>('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<{ category?: string; startDate?: Date; endDate?: Date }>({});
+
+  const { 
+    data, 
+    isLoading: loading, 
+    isFetchingNextPage: loadingMore, 
+    hasNextPage: hasMore, 
+    fetchNextPage: fetchMore, 
+    refetch: refresh,
+    error: queryError
+  } = useTransactionsQuery({
+    search: searchText,
+    type: activeType,
+    category: advancedFilters.category,
+    startDate: advancedFilters.startDate,
+    endDate: advancedFilters.endDate
+  });
+
+  const filteredTransactions = React.useMemo(() => {
+    if (!data) return [];
+    let allTx = data.pages.flatMap((page) => page.transactions);
+    
+    if (searchText) {
+      const term = searchText.toLowerCase();
+      allTx = allTx.filter(t => 
+        t.description.toLowerCase().includes(term) || 
+        t.category.toLowerCase().includes(term)
+      );
+    }
+    
+    return allTx;
+  }, [data, searchText]);
 
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' | 'warning' }>({
     visible: false,
@@ -57,40 +77,21 @@ export default function TransactionsScreen() {
   };
 
   React.useEffect(() => {
-    if (contextError) {
-      showToast(contextError, 'error');
+    if (queryError) {
+      showToast(queryError.message || 'Erro ao buscar transações', 'error');
     }
-  }, [contextError]);
+  }, [queryError]);
 
   const handleSearch = (text: string) => {
     setSearchText(text);
-    fetchTransactions({ 
-      search: text, 
-      type: activeType,
-      category: advancedFilters.category,
-      startDate: advancedFilters.startDate,
-      endDate: advancedFilters.endDate
-    });
   };
 
   const handleTypeChange = (type: 'all' | 'income' | 'expense') => {
     setActiveType(type);
-    fetchTransactions({ 
-      search: searchText, 
-      type,
-      category: advancedFilters.category,
-      startDate: advancedFilters.startDate,
-      endDate: advancedFilters.endDate
-    });
   };
 
   const handleApplyAdvancedFilters = (filters: { category?: string; startDate?: Date; endDate?: Date }) => {
     setAdvancedFilters(filters);
-    fetchTransactions({
-      search: searchText,
-      type: activeType,
-      ...filters
-    }).catch(err => showToast(err.message, 'error'));
   };
 
   const renderItem = ({ item }: { item: any }) => {
@@ -207,7 +208,6 @@ export default function TransactionsScreen() {
                 setSearchText('');
                 setActiveType('all');
                 setAdvancedFilters({});
-                fetchTransactions({ search: '', type: 'all' });
               }}
             />
           ) : null
