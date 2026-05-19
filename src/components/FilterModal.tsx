@@ -1,7 +1,6 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { Calendar, Check, RotateCcw, X } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
 import React, { useState } from 'react';
 import {
   Modal,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { CATEGORIES } from '../utils/categories';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface FilterModalProps {
   visible: boolean;
@@ -22,8 +22,7 @@ interface FilterModalProps {
 }
 
 export function FilterModal({ visible, onClose, onApply, initialFilters }: FilterModalProps) {
-  const { colorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
+  const { dark, bgColor, textMain, textSub, borderColor, palette } = useThemeColors();
 
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(initialFilters.category);
   const [startDate, setStartDate] = useState<Date | undefined>(initialFilters.startDate);
@@ -42,11 +41,6 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
       return () => clearTimeout(timer);
     }
   }, [visible]);
-
-  const textSub = dark ? '#94a3b8' : '#64748b';
-  const bgColor = dark ? '#1e293b' : '#ffffff';
-  const textMain = dark ? '#f1f5f9' : '#0f172a';
-  const borderColor = dark ? '#334155' : '#e2e8f0';
 
   const handleReset = () => {
     setSelectedCategory(undefined);
@@ -131,7 +125,7 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                   <TouchableOpacity 
                     onPress={() => setShowStartPicker(true)}
                     activeOpacity={0.7}
-                    style={[styles.datePicker, { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }]}
+                    style={[styles.datePicker, { backgroundColor: dark ? palette.slate[700] : palette.slate[100], borderColor }]}
                   >
                     <Calendar size={18} color={textSub} />
                     <Text style={[styles.dateText, { color: startDate ? textMain : textSub }]}>
@@ -142,7 +136,7 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                   <TouchableOpacity 
                     onPress={() => setShowEndPicker(true)}
                     activeOpacity={0.7}
-                    style={[styles.datePicker, { backgroundColor: dark ? '#334155' : '#f1f5f9', borderColor }]}
+                    style={[styles.datePicker, { backgroundColor: dark ? palette.slate[700] : palette.slate[100], borderColor }]}
                   >
                     <Calendar size={18} color={textSub} />
                     <Text style={[styles.dateText, { color: endDate ? textMain : textSub }]}>
@@ -161,8 +155,8 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
               </TouchableOpacity>
 
               <TouchableOpacity onPress={handleApply} style={styles.applyBtn} className="bg-primary">
-                <Check size={20} color="#fff" />
-                <Text style={styles.applyText}>Aplicar Filtros</Text>
+                <Check size={20} color={palette.white} />
+                <Text style={[styles.applyText, { color: palette.white }]}>Aplicar Filtros</Text>
               </TouchableOpacity>
             </View>
 
@@ -297,7 +291,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   applyText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '800',
   },

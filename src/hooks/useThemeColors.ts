@@ -1,15 +1,22 @@
-import { useColorScheme } from 'nativewind';
+import { useColorScheme } from "nativewind"
+import { palette, themeColors } from "../assets/tokens/colors"
 
 export function useThemeColors() {
-  const { colorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
+  const { colorScheme } = useColorScheme()
+  const dark = colorScheme === "dark"
+
+  const currentTheme = dark ? themeColors.dark : themeColors.light
 
   return {
     dark,
-    bgColor: dark ? '#0f172a' : '#f8fafc',
-    cardBg: dark ? '#1e293b' : '#ffffff',
-    textMain: dark ? '#f1f5f9' : '#0f172a',
-    textSub: dark ? '#94a3b8' : '#64748b',
-    borderColor: dark ? '#334155' : '#e2e8f0',
-  };
+    bgColor: currentTheme.background,
+    cardBg: currentTheme.card,
+    textMain: currentTheme.textMain,
+    textSub: currentTheme.textSub,
+    borderColor: currentTheme.border,
+    tabBarActive: currentTheme.tabBarActive,
+    tabBarInactive: currentTheme.tabBarInactive,
+    tabBarBg: currentTheme.tabBarBg,
+    palette,
+  }
 }

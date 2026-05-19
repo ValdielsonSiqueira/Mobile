@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LucideIcon, Plus } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -12,6 +12,8 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon: Icon, title, description, actionLabel, onAction }: EmptyStateProps) {
+  const { palette } = useThemeColors();
+
   return (
     <View style={styles.container}>
       <View className="bg-surface" style={styles.iconContainer}>
@@ -27,8 +29,8 @@ export function EmptyState({ icon: Icon, title, description, actionLabel, onActi
           className="bg-primary shadow-primary"
           onPress={onAction}
         >
-          <Plus size={20} color="#fff" style={{ marginRight: 8 }} />
-          <Text style={styles.buttonText}>{actionLabel}</Text>
+          <Plus size={20} color={palette.white} style={{ marginRight: 8 }} />
+          <Text style={[styles.buttonText, { color: palette.white }]}>{actionLabel}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -74,7 +76,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
   },

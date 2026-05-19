@@ -1,6 +1,7 @@
 import { Link } from 'expo-router';
 import { Eye, EyeOff, Moon, PlusCircle, Sun, TrendingDown, TrendingUp, Wallet } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import { useThemeColors } from '../../src/hooks/useThemeColors';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
@@ -48,8 +49,8 @@ function useFadeSlideIn(delay = 0) {
 }
 
 export default function DashboardScreen() {
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
+  const { toggleColorScheme } = useColorScheme();
+  const { dark, bgColor, cardBg, textMain, textSub, palette } = useThemeColors();
 
   const [hideValues, setHideValues] = useState(false);
   const { data, isLoading: loading, refetch: refresh } = useTransactionsQuery();
@@ -78,15 +79,10 @@ export default function DashboardScreen() {
 
   const recentTransactions = useMemo(() => [...transactions].slice(0, 5), [transactions]);
 
-  const bgColor  = dark ? '#0f172a' : '#f8fafc';
-  const cardBg   = dark ? '#1e293b' : '#ffffff';
-  const textMain = dark ? '#f1f5f9' : '#0f172a';
-  const textSub  = dark ? '#94a3b8' : '#64748b';
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: bgColor }}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={dark ? '#fff' : '#000'} />}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={palette.textMain} />}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
       <Animated.View style={[headerAnim, { paddingHorizontal: 20, paddingTop: 56, marginBottom: 8 }]}>
@@ -98,15 +94,15 @@ export default function DashboardScreen() {
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
             <TouchableOpacity
               onPress={() => setHideValues(prev => !prev)}
-              style={{ padding: 10, backgroundColor: dark ? '#1e293b' : '#e2e8f0', borderRadius: 999 }}
+              style={{ padding: 10, backgroundColor: dark ? palette.slate[800] : palette.slate[200], borderRadius: 999 }}
             >
-              {hideValues ? <EyeOff size={20} color={dark ? '#94a3b8' : '#64748b'} /> : <Eye size={20} color={dark ? '#94a3b8' : '#64748b'} />}
+              {hideValues ? <EyeOff size={20} color={textSub} /> : <Eye size={20} color={textSub} />}
             </TouchableOpacity>
             <TouchableOpacity
               onPress={toggleColorScheme}
-              style={{ padding: 10, backgroundColor: dark ? '#1e293b' : '#e2e8f0', borderRadius: 999 }}
+              style={{ padding: 10, backgroundColor: dark ? palette.slate[800] : palette.slate[200], borderRadius: 999 }}
             >
-              {dark ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#475569" />}
+              {dark ? <Sun size={20} color={palette.warning.DEFAULT} /> : <Moon size={20} color={palette.slate[600]} />}
             </TouchableOpacity>
           </View>
         </View>
@@ -114,15 +110,15 @@ export default function DashboardScreen() {
 
       <View style={{ paddingHorizontal: 20 }}>
 
-        <Animated.View style={[balanceAnim, styles.balanceCard]}>
+        <Animated.View style={[balanceAnim, styles.balanceCard, { backgroundColor: palette.primary.DEFAULT, shadowColor: palette.primary.DEFAULT }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-            <Wallet size={18} color="#bfdbfe" />
-            <Text style={{ color: '#bfdbfe', marginLeft: 6, fontWeight: '600', fontSize: 13 }}>Saldo Total</Text>
+            <Wallet size={18} color={palette.primary.light} />
+            <Text style={{ color: palette.primary.light, marginLeft: 6, fontWeight: '600', fontSize: 13 }}>Saldo Total</Text>
           </View>
-          <Text style={{ fontSize: 38, fontWeight: '800', color: '#fff', letterSpacing: -1 }}>
+          <Text style={{ fontSize: 38, fontWeight: '800', color: palette.white, letterSpacing: -1 }}>
             {hideValues ? '••••••••' : formatCurrency(balance)}
           </Text>
-          <Text style={{ color: '#bfdbfe', marginTop: 6, fontSize: 12 }}>
+          <Text style={{ color: palette.primary.light, marginTop: 6, fontSize: 12 }}>
             {transactions.length} transação{transactions.length !== 1 ? 'ões' : ''} registrada{transactions.length !== 1 ? 's' : ''}
           </Text>
         </Animated.View>
@@ -131,19 +127,17 @@ export default function DashboardScreen() {
           <SummaryCard
             label="Receitas"
             value={totalIncome}
-            color="#22c55e"
-            icon={<TrendingUp size={18} color="#22c55e" />}
+            color={palette.success.DEFAULT}
+            icon={<TrendingUp size={18} color={palette.success.DEFAULT} />}
             animStyle={[cardsAnim, { flex: 1 }]}
-            dark={dark}
             hideValues={hideValues}
           />
           <SummaryCard
             label="Despesas"
             value={totalExpense}
-            color="#ef4444"
-            icon={<TrendingDown size={18} color="#ef4444" />}
+            color={palette.danger.DEFAULT}
+            icon={<TrendingDown size={18} color={palette.danger.DEFAULT} />}
             animStyle={[cardsAnim, { flex: 1 }]}
-            dark={dark}
             hideValues={hideValues}
           />
         </View>
@@ -157,11 +151,11 @@ export default function DashboardScreen() {
               padding: 16,
               borderRadius: 14,
               marginBottom: 20,
-              backgroundColor: dark ? 'rgba(37,99,235,0.25)' : '#dbeafe',
+              backgroundColor: dark ? palette.primary.transparent : palette.primary.light,
             }}
           >
-            <PlusCircle size={20} color="#3b82f6" />
-            <Text style={{ color: '#3b82f6', fontWeight: '700', marginLeft: 8, fontSize: 15 }}>
+            <PlusCircle size={20} color={palette.primary.DEFAULT} />
+            <Text style={{ color: palette.primary.DEFAULT, fontWeight: '700', marginLeft: 8, fontSize: 15 }}>
               Nova Transação
             </Text>
           </TouchableOpacity>
@@ -173,21 +167,13 @@ export default function DashboardScreen() {
             totalIncome={totalIncome}
             totalExpense={totalExpense}
             animStyle={pieAnim}
-            dark={dark}
             hideValues={hideValues}
-            cardBg={cardBg}
-            textMain={textMain}
-            textSub={textSub}
           />
         )}
 
         <TransactionsBarChart
           transactions={transactions}
           animStyle={barAnim}
-          dark={dark}
-          cardBg={cardBg}
-          textMain={textMain}
-          textSub={textSub}
         />
 
         <Animated.View style={recentAnim}>
@@ -215,11 +201,9 @@ export default function DashboardScreen() {
 
 const styles = StyleSheet.create({
   balanceCard: {
-    backgroundColor: '#2563eb',
     borderRadius: 20,
     padding: 24,
     marginBottom: 16,
-    shadowColor: '#2563eb',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
     shadowRadius: 16,

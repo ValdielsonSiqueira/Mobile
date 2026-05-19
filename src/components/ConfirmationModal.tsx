@@ -1,7 +1,7 @@
 import { AlertTriangle, Trash2, X } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOut, FadeOutDown } from 'react-native-reanimated';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -24,21 +24,17 @@ export function ConfirmationModal({
   onCancel,
   type = 'delete'
 }: ConfirmationModalProps) {
-  const { colorScheme } = useColorScheme();
-  const dark = colorScheme === 'dark';
+  const { bgColor, textMain, textSub, borderColor, palette } = useThemeColors();
 
   if (!visible) return null;
 
-  const textSub = dark ? '#94a3b8' : '#64748b'; 
-  const bgColor = dark ? '#1e293b' : '#ffffff';
-  const textMain = dark ? '#f1f5f9' : '#0f172a';
   const overlayColor = 'rgba(0,0,0,0.6)';
 
   const getIcon = () => {
     switch (type) {
-      case 'delete': return <Trash2 size={32} color="#ef4444" />;
-      case 'warning': return <AlertTriangle size={32} color="#f59e0b" />;
-      default: return <AlertTriangle size={32} color="#3b82f6" />;
+      case 'delete': return <Trash2 size={32} color={palette.danger.DEFAULT} />;
+      case 'warning': return <AlertTriangle size={32} color={palette.warning.DEFAULT} />;
+      default: return <AlertTriangle size={32} color={palette.primary.DEFAULT} />;
     }
   };
 
@@ -63,7 +59,7 @@ export function ConfirmationModal({
         <Animated.View 
           entering={FadeInUp.springify().damping(20).mass(0.8)} 
           exiting={FadeOutDown}
-          style={[styles.modalContainer, { backgroundColor: bgColor }]}
+          style={[styles.modalContainer, { backgroundColor: bgColor, shadowColor: palette.black }]}
         >
           <View style={styles.iconWrapper} className={themeClasses.wrapper}>
             {getIcon()}
@@ -75,17 +71,17 @@ export function ConfirmationModal({
           <View style={styles.buttonRow}>
             <TouchableOpacity 
               onPress={onCancel} 
-              style={[styles.button, styles.cancelButton, { borderColor: dark ? '#334155' : '#e2e8f0' }]}
+              style={[styles.button, styles.cancelButton, { borderColor }]}
             >
               <Text style={[styles.buttonText, { color: textSub }]}>{cancelLabel}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={onConfirm} 
-              style={[styles.button, styles.confirmButton]}
+              style={[styles.button, styles.confirmButton, { shadowColor: palette.black }]}
               className={themeClasses.button}
             >
-              <Text style={[styles.buttonText, styles.confirmText]}>{confirmLabel}</Text>
+              <Text style={[styles.buttonText, { color: palette.white }]}>{confirmLabel}</Text>
             </TouchableOpacity>
           </View>
 
@@ -114,7 +110,6 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -158,7 +153,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   confirmButton: {
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -167,9 +161,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '700',
-  },
-  confirmText: {
-    color: '#fff',
   },
   closeBtn: {
     position: 'absolute',

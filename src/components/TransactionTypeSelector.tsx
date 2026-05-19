@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { palette } from '../assets/tokens/colors';
 
 interface TransactionTypeSelectorProps {
   currentType: 'income' | 'expense';
@@ -44,16 +45,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   typeTabExpense: {
-    backgroundColor: '#ef4444',
+    backgroundColor: palette.danger.DEFAULT,
   },
   typeTabIncome: {
-    backgroundColor: '#22c55e',
+    backgroundColor: palette.success.DEFAULT,
   },
   typeText: {
     fontSize: 14,
     fontWeight: '700',
   },
   typeTextActive: {
-    color: '#fff',
+    color: palette.white,
   },
 });

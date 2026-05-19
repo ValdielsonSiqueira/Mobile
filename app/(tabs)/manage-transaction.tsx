@@ -14,7 +14,7 @@ export default function ManageTransactionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const router = useRouter();
-  const { bgColor, textMain, borderColor } = useThemeColors();
+  const { bgColor, textMain, borderColor, palette } = useThemeColors();
   
   const { data } = useTransactionsQuery();
   const getTransactionById = React.useCallback((txId: string) => {
@@ -108,8 +108,8 @@ export default function ManageTransactionScreen() {
             disabled={isDeleting}
             style={[styles.deleteBtn, { borderColor }, isDeleting && { opacity: 0.6 }]}
           >
-            {isDeleting ? <ActivityIndicator color="#ef4444" /> : <Trash2 size={20} color="#ef4444" />}
-            <Text style={styles.deleteBtnText}>Excluir Transação</Text>
+            {isDeleting ? <ActivityIndicator color={palette.danger.DEFAULT} /> : <Trash2 size={20} color={palette.danger.DEFAULT} />}
+            <Text style={[styles.deleteBtnText, { color: palette.danger.DEFAULT }]}>Excluir Transação</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -179,7 +179,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   deleteBtnText: {
-    color: '#ef4444',
     fontSize: 16,
     fontWeight: '700',
   },

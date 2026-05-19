@@ -33,7 +33,7 @@ interface TransactionFormProps {
 }
 
 export function TransactionForm({ initialData, onSubmit, uploading, isSaving, uploadProgress }: TransactionFormProps) {
-  const { cardBg, textMain, textSub, borderColor } = useThemeColors();
+  const { cardBg, textMain, textSub, borderColor, palette } = useThemeColors();
   
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
@@ -174,7 +174,7 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
               </View>
             )}
           />
-          {errors.amount && <Text style={styles.errorText}>{errors.amount.message}</Text>}
+          {errors.amount && <Text style={[styles.errorText, { color: palette.danger.DEFAULT }]}>{errors.amount.message}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
@@ -192,7 +192,7 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
               />
             )}
           />
-          {errors.description && <Text style={styles.errorText}>{errors.description.message}</Text>}
+          {errors.description && <Text style={[styles.errorText, { color: palette.danger.DEFAULT }]}>{errors.description.message}</Text>}
         </View>
 
         <View style={styles.row}>
@@ -207,7 +207,7 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
               </Text>
               <Plus size={18} color={textSub} />
             </TouchableOpacity>
-            {errors.category && <Text style={styles.errorText}>{errors.category.message}</Text>}
+            {errors.category && <Text style={[styles.errorText, { color: palette.danger.DEFAULT }]}>{errors.category.message}</Text>}
           </View>
 
           <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
@@ -245,7 +245,7 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
           
           {(receiptFile || watch('receiptUrl')) && (
             <View style={[styles.receiptPreview, { backgroundColor: cardBg, borderColor }]}>
-              <Check size={18} color="#22c55e" />
+              <Check size={18} color={palette.success.DEFAULT} />
               <TouchableOpacity onPress={handleViewReceipt} style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={[styles.receiptName, { color: textMain }]} numberOfLines={1}>
                   {receiptFile ? receiptFile.name : 'Recibo Anexado'}
@@ -256,15 +256,15 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
                 setReceiptFile(null);
                 setValue('receiptUrl', '');
               }}>
-                <Trash2 size={18} color="#ef4444" />
+                <Trash2 size={18} color={palette.danger.DEFAULT} />
               </TouchableOpacity>
             </View>
           )}
 
           {uploading && (
             <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { width: `${uploadProgress || 0}%` }]} />
-              <Text style={styles.progressText}>Fazendo upload... {uploadProgress || 0}%</Text>
+              <View style={[styles.progressBar, { width: `${uploadProgress || 0}%`, backgroundColor: palette.primary.DEFAULT }]} />
+              <Text style={[styles.progressText, { color: palette.primary.DEFAULT }]}>Fazendo upload... {uploadProgress || 0}%</Text>
             </View>
           )}
         </View>
@@ -275,14 +275,14 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
         disabled={isButtonDisabled}
         style={[
           styles.saveBtn,
-          { backgroundColor: currentType === 'income' ? '#22c55e' : '#ef4444' },
+          { backgroundColor: currentType === 'income' ? palette.success.DEFAULT : palette.danger.DEFAULT },
           isButtonDisabled && { opacity: 0.6 }
         ]}
       >
         {isButtonDisabled ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={palette.white} />
         ) : (
-          <Text style={styles.saveBtnText}>
+          <Text style={[styles.saveBtnText, { color: palette.white }]}>
             {initialData ? 'Atualizar Transação' : 'Nova Transação'}
           </Text>
         )}
@@ -344,7 +344,7 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
             style={styles.viewerCloseBtn} 
             onPress={() => setShowReceiptViewer(false)}
           >
-            <X size={28} color="#fff" />
+            <X size={28} color={palette.white} />
           </TouchableOpacity>
           {viewerUri && (
             <Image 
@@ -446,12 +446,10 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 4,
-    backgroundColor: '#3b82f6',
     borderRadius: 2,
   },
   progressText: {
     fontSize: 12,
-    color: '#3b82f6',
     marginTop: 4,
     fontWeight: '600',
   },
@@ -464,12 +462,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveBtnText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: '800',
   },
   errorText: {
-    color: '#ef4444',
     fontSize: 12,
     marginTop: 4,
     marginLeft: 4,

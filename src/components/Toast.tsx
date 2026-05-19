@@ -19,10 +19,12 @@ interface ToastProps {
   onHide: () => void;
 }
 
+import { palette } from '../assets/tokens/colors';
+
 const ICONS = {
-  success: <CheckCircle size={20} color="#22c55e" />,
-  error: <XCircle size={20} color="#ef4444" />,
-  warning: <AlertCircle size={20} color="#f59e0b" />,
+  success: <CheckCircle size={20} color={palette.success.DEFAULT} />,
+  error: <XCircle size={20} color={palette.danger.DEFAULT} />,
+  warning: <AlertCircle size={20} color={palette.warning.DEFAULT} />,
 };
 
 const BG_CLASSES: Record<ToastType, string> = {

@@ -1,5 +1,6 @@
 import { Wallet } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import { palette } from '../assets/tokens/colors';
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -58,7 +59,7 @@ export function LoadingScreen() {
         <Animated.View style={styles.ring} className="border-primary" />
         
         <Animated.View style={styles.logoBox} className="bg-primary shadow-primary" />
-          <Wallet size={40} color="#fff" style={{zIndex: 3, position: 'absolute'}} />
+          <Wallet size={40} color={palette.white} style={{zIndex: 3, position: 'absolute'}} />
       </View>
 
       <Animated.View style={{ opacity }}>

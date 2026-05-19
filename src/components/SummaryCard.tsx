@@ -1,5 +1,6 @@
 import React from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface SummaryCardProps {
   label: string;
@@ -7,7 +8,6 @@ interface SummaryCardProps {
   color: string;
   icon: React.ReactNode;
   animStyle: any;
-  dark: boolean;
   hideValues: boolean;
 }
 
@@ -15,13 +15,15 @@ function formatCurrency(val: number) {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function SummaryCard({ label, value, color, icon, animStyle, dark, hideValues }: SummaryCardProps) {
+export function SummaryCard({ label, value, color, icon, animStyle, hideValues }: SummaryCardProps) {
+  const { cardBg, textSub, palette } = useThemeColors();
+
   return (
-    <Animated.View style={[animStyle, styles.summaryCard, { backgroundColor: dark ? '#1e293b' : '#fff' }]}>
+    <Animated.View style={[animStyle, styles.summaryCard, { backgroundColor: cardBg, shadowColor: palette.black }]}>
       <View style={[styles.summaryIcon, { backgroundColor: color + '20' }]}>
         {icon}
       </View>
-      <Text style={[styles.summaryLabel, { color: dark ? '#94a3b8' : '#64748b' }]}>{label}</Text>
+      <Text style={[styles.summaryLabel, { color: textSub }]}>{label}</Text>
       <Text style={[styles.summaryValue, { color }]}>{hideValues ? '••••••••' : formatCurrency(value)}</Text>
     </Animated.View>
   );
@@ -31,7 +33,6 @@ const styles = StyleSheet.create({
   summaryCard: {
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,

@@ -7,7 +7,7 @@ import { useThemeColors } from '../../src/hooks/useThemeColors';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
-  const { dark, bgColor, cardBg, textMain, textSub, borderColor } = useThemeColors();
+  const { dark, bgColor, cardBg, textMain, textSub, borderColor, palette } = useThemeColors();
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
@@ -17,8 +17,8 @@ export default function ProfileScreen() {
 
       <View style={styles.content}>
         <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
-          <View style={[styles.iconContainer, { backgroundColor: '#3b82f620' }]}>
-            <UserIcon size={32} color="#3b82f6" />
+          <View style={[styles.iconContainer, { backgroundColor: palette.primary.transparent }]}>
+            <UserIcon size={32} color={palette.primary.DEFAULT} />
           </View>
           <Text style={[styles.emailLabel, { color: textSub }]}>E-mail da Conta</Text>
           <Text style={[styles.emailText, { color: textMain }]}>{user?.email || 'N/A'}</Text>
@@ -28,8 +28,8 @@ export default function ProfileScreen() {
           style={[styles.logoutBtn, { backgroundColor: cardBg, borderColor }]} 
           onPress={signOut}
         >
-          <LogOut size={20} color="#ef4444" />
-          <Text style={styles.logoutText}>Sair da Conta</Text>
+          <LogOut size={20} color={palette.danger.DEFAULT} />
+          <Text style={[styles.logoutText, { color: palette.danger.DEFAULT }]}>Sair da Conta</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -87,7 +87,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logoutText: {
-    color: '#ef4444',
     fontSize: 16,
     fontWeight: '700',
   },

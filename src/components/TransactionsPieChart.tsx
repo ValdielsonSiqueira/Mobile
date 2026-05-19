@@ -3,17 +3,14 @@ import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { PieChart } from 'react-native-gifted-charts';
 import { Transaction } from '../types/transaction';
 import { getCategoryColor, getCategoryLabel } from '../utils/categories';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface TransactionsPieChartProps {
   transactions: Transaction[];
   totalIncome: number;
   totalExpense: number;
   animStyle: any;
-  dark: boolean;
   hideValues: boolean;
-  cardBg: string;
-  textMain: string;
-  textSub: string;
 }
 
 function formatCurrency(val: number) {
@@ -25,12 +22,9 @@ export function TransactionsPieChart({
   totalIncome,
   totalExpense,
   animStyle,
-  dark,
   hideValues,
-  cardBg,
-  textMain,
-  textSub
 }: TransactionsPieChartProps) {
+  const { dark, cardBg, textMain, textSub, palette } = useThemeColors();
   const [pieType, setPieType] = useState<'income' | 'expense'>('expense');
 
   const pieData = useMemo(() => {
@@ -51,7 +45,7 @@ export function TransactionsPieChart({
   }, [transactions, pieType]);
 
   return (
-    <Animated.View style={[animStyle, styles.chartCard, { backgroundColor: cardBg }]}>
+    <Animated.View style={[animStyle, styles.chartCard, { backgroundColor: cardBg, shadowColor: palette.black }]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.chartTitle, { color: textMain, marginBottom: 0 }]}>
@@ -59,7 +53,7 @@ export function TransactionsPieChart({
           </Text>
         </View>
         
-        <View style={{ flexDirection: 'row', backgroundColor: dark ? '#334155' : '#f1f5f9', borderRadius: 8, padding: 2, flexShrink: 0 }}>
+        <View style={{ flexDirection: 'row', backgroundColor: dark ? palette.slate[700] : palette.slate[100], borderRadius: 8, padding: 2, flexShrink: 0 }}>
           {(['expense', 'income'] as const).map((type) => (
             <TouchableOpacity
               key={type}
@@ -67,11 +61,11 @@ export function TransactionsPieChart({
               style={{
                 paddingHorizontal: 10,
                 paddingVertical: 4,
-                backgroundColor: pieType === type ? (type === 'expense' ? '#ef4444' : '#22c55e') : 'transparent',
+                backgroundColor: pieType === type ? (type === 'expense' ? palette.danger.DEFAULT : palette.success.DEFAULT) : 'transparent',
                 borderRadius: 6,
               }}
             >
-              <Text style={{ fontSize: 10, fontWeight: '700', color: pieType === type ? '#fff' : textSub }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: pieType === type ? palette.white : textSub }}>
                 {type === 'expense' ? 'Despesas' : 'Receitas'}
               </Text>
             </TouchableOpacity>
@@ -89,8 +83,8 @@ export function TransactionsPieChart({
             innerCircleColor={cardBg}
             centerLabelComponent={() => (
               <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: dark ? '#94a3b8' : '#64748b' }}>Total</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: dark ? '#f1f5f9' : '#0f172a' }}>
+                <Text style={{ fontSize: 11, color: textSub }}>Total</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: textMain }}>
                   {hideValues ? '••••••••' : formatCurrency(pieType === 'expense' ? totalExpense : totalIncome)}
                 </Text>
               </View>
@@ -126,7 +120,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,

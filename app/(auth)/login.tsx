@@ -6,6 +6,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as z from 'zod';
 import { auth } from '../../src/firebase/config';
+import { palette } from '../../src/assets/tokens/colors';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'O e-mail é obrigatório.').email('Digite um e-mail válido.'),
@@ -61,7 +62,7 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
                   style={{ padding: 8 }}
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={palette.slate[400]}
                 />
               )}
             />
@@ -80,7 +81,7 @@ export default function LoginScreen() {
                   secureTextEntry
                   className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
                   style={{ padding: 8 }}
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor={palette.slate[400]}
                 />
               )}
             />
@@ -89,7 +90,7 @@ export default function LoginScreen() {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#3b82f6" className="mt-6" />
+          <ActivityIndicator size="large" color={palette.primary.DEFAULT} className="mt-6" />
         ) : (
           <View className="flex-col gap-3 mt-6">
             <TouchableOpacity

@@ -20,7 +20,7 @@ import { useTransactionsQuery } from '../../src/application/hooks/useTransaction
 import { useThemeColors } from '../../src/hooks/useThemeColors';
 
 export default function TransactionsScreen() {
-  const { dark, bgColor, cardBg, textMain, textSub, borderColor } = useThemeColors();
+  const { dark, bgColor, cardBg, textMain, textSub, borderColor, palette } = useThemeColors();
   const [searchText, setSearchText] = useState('');
   const [activeType, setActiveType] = useState<'all' | 'income' | 'expense'>('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -102,13 +102,13 @@ export default function TransactionsScreen() {
         renderItem={({ item }) => <TransactionListItem transaction={item} />}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refresh} tintColor={dark ? '#fff' : '#000'} />
+          <RefreshControl refreshing={loading} onRefresh={refresh} tintColor={dark ? palette.white : palette.black} />
         }
         onEndReached={fetchMore}
         onEndReachedThreshold={0.3}
         ListFooterComponent={
           loadingMore ? (
-            <ActivityIndicator size="small" color="#3b82f6" style={styles.loader} />
+            <ActivityIndicator size="small" color={palette.primary.DEFAULT} style={styles.loader} />
           ) : null
         }
         ListEmptyComponent={

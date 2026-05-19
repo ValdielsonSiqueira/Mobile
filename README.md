@@ -7,7 +7,7 @@ Aplicativo móvel de controle financeiro desenvolvido em React Native (Expo) par
 - **Autenticação:** Login e Cadastro seguros utilizando Firebase Auth.
 - **Segurança de Dados:** Armazenamento criptografado de credenciais/sessão no hardware do dispositivo usando `expo-secure-store`.
 - **Dashboard Interativo:** Visão geral do saldo, total de receitas e despesas com atualizações reativas (sem refresh manual).
-- **Gráficos Dinâmicos:** 
+- **Gráficos Dinâmicos:**
   - Gráfico de pizza (Receitas/Despesas por categoria).
   - Gráfico de barras (Comparativo mensal de receitas x despesas configurável entre 3, 6 e 12 meses).
 - **Gestão de Transações:** Criação, edição e exclusão de transações com atualizações otimistas.
@@ -16,6 +16,21 @@ Aplicativo móvel de controle financeiro desenvolvido em React Native (Expo) par
 - **Filtros Avançados:** Busca por nome, filtro por tipo (receita/despesa), por categoria e intervalo de datas personalizadas.
 - **Modo Dark/Light:** Interface que se adequa ao tema com alternância manual intuitiva.
 - **Modo Privacidade:** Botão (ícone de olho) para ocultar dados sensíveis.
+
+## 🎨 Design System e Componentização
+
+A aplicação passou por duas grandes fases de refatoração para garantir maior escalabilidade, manutenibilidade e padrão visual:
+
+1. **Fragmentação em Subcomponentes:**
+   Arquivos complexos e monolíticos (como o Dashboard e o Formulário de Transações) foram desmembrados em partes menores e focadas:
+   - Extração do `SummaryCard` para os cards de métricas superior.
+   - Separação total de lógicas de gráficos analíticos em `TransactionsPieChart` e `TransactionsBarChart`.
+   - Limpeza e abstração de `TransactionForm`, `TransactionListItem` e `TransactionTypeSelector` isolando regras de negócio em partes reutilizáveis.
+
+2. **Schema de Tokens (Design System):**
+   Foi abolido o uso de _hardcoded hex codes_ (códigos de cores fixos) soltos pelas views, unificando a aparência através de uma fonte de verdade:
+   - **`colors.ts`:** Um dicionário e _schema_ completo com paleta de tokens (`primary`, `danger`, `success`, `warning`, paletas base).
+   - **Hook `useThemeColors`:** Intermediador de interface que injeta variáveis baseadas no tema Claro e Escuro, extinguindo prop drilling de cores no código-fonte e tornando todo o ecossistema automaticamente reativo ao Dark Mode com pouquíssimo esforço!
 
 ## 🛠 Tecnologias Utilizadas
 
@@ -34,6 +49,7 @@ Aplicativo móvel de controle financeiro desenvolvido em React Native (Expo) par
 ## ⚙️ Pré-requisitos
 
 Antes de rodar o projeto, você precisa ter instalado na sua máquina:
+
 - [Node.js](https://nodejs.org/en/) (versão LTS recomendada)
 - [pnpm](https://pnpm.io/pt/) (`npm install -g pnpm`)
 - O aplicativo **Expo Go** instalado no seu celular (iOS ou Android), ou um emulador configurado e pronto para uso no computador.
@@ -62,17 +78,20 @@ EXPO_PUBLIC_FIREBASE_APP_ID="SEU_APP_ID"
 ## 🏃 Como Rodar o Projeto
 
 1. **Clone o repositório** do projeto:
+
    ```bash
    git clone <URL_DO_REPOSITORIO>
    cd Mobile
    ```
 
 2. **Instale as dependências** do app usando o `pnpm`:
+
    ```bash
    pnpm install
    ```
 
 3. **Inicie o servidor de desenvolvimento** do Expo:
+
    ```bash
    pnpm start
    ```
@@ -89,7 +108,7 @@ Abaixo a visão em árvore de como o projeto está padronizado:
 ```text
 /
 ├── app/                  # Rotas gerenciadas pelo Expo Router (Fluxo nativo e Telas)
-│   ├── (auth)/           # Grupo de arquivos das telas de Login e Registro 
+│   ├── (auth)/           # Grupo de arquivos das telas de Login e Registro
 │   ├── (tabs)/           # Grupo das abas inferiores (Dashboard principal, Histórico e Telas logadas)
 │   └── _layout.tsx       # Root Layout que engloba contextos do App
 ├── assets/               # Imagens e materiais estáticos
@@ -109,10 +128,11 @@ Abaixo a visão em árvore de como o projeto está padronizado:
 
 ## 📝 Scripts do Package.json
 
-* `pnpm start`: Inicia o bundler Metro do Expo para os dispositivos conectarem.
-* `pnpm android`: Inicia e força a abertura no emulador Android de forma nativa.
-* `pnpm ios`: Inicia o app diretamente no simulador do ecossistema macOS.
-* `pnpm reset-project`: Um script embutido no Expo para formatar a branch main com o starter, porém em nossa via atual, não será necessário.
+- `pnpm start`: Inicia o bundler Metro do Expo para os dispositivos conectarem.
+- `pnpm android`: Inicia e força a abertura no emulador Android de forma nativa.
+- `pnpm ios`: Inicia o app diretamente no simulador do ecossistema macOS.
+- `pnpm reset-project`: Um script embutido no Expo para formatar a branch main com o starter, porém em nossa via atual, não será necessário.
 
 ---
-*Este aplicativo foi desenvolvido para fins educacionais e avaliativos para a Pós Graduação Mobile FIAP Modulo 4. A responsabilidade financeira sobre o código e armazenamento de chaves nas APIs é sob a conta gratuita dos usuários desenvolvedores.*
+
+_Este aplicativo foi desenvolvido para fins educacionais e avaliativos para a Pós Graduação Mobile FIAP Modulo 4. A responsabilidade financeira sobre o código e armazenamento de chaves nas APIs é sob a conta gratuita dos usuários desenvolvedores._

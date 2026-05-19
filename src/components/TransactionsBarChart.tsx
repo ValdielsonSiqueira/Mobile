@@ -4,26 +4,20 @@ import React, { useMemo, useState } from 'react';
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { Transaction } from '../types/transaction';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 interface TransactionsBarChartProps {
   transactions: Transaction[];
   animStyle: any;
-  dark: boolean;
-  cardBg: string;
-  textMain: string;
-  textSub: string;
 }
 
 export function TransactionsBarChart({
   transactions,
-  animStyle,
-  dark,
-  cardBg,
-  textMain,
-  textSub
+  animStyle
 }: TransactionsBarChartProps) {
+  const { dark, cardBg, textMain, textSub, palette, borderColor } = useThemeColors();
   const [barPeriod, setBarPeriod] = useState(6);
 
   const barData = useMemo(() => {
@@ -52,20 +46,20 @@ export function TransactionsBarChart({
 
   const groupedBarData = useMemo(() =>
     barData.map((m) => [
-      { value: m.income,  label: m.label, frontColor: '#22c55e', spacing: 4, labelWidth: 36, labelTextStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 11 } },
-      { value: m.expense, frontColor: '#ef4444' },
+      { value: m.income,  label: m.label, frontColor: palette.success.DEFAULT, spacing: 4, labelWidth: 36, labelTextStyle: { color: textSub, fontSize: 11 } },
+      { value: m.expense, frontColor: palette.danger.DEFAULT },
     ]).flat()
-  , [barData, dark]);
+  , [barData, palette, textSub]);
 
   return (
-    <Animated.View style={[animStyle, styles.chartCard, { backgroundColor: cardBg }]}>
+    <Animated.View style={[animStyle, styles.chartCard, { backgroundColor: cardBg, shadowColor: palette.black }]}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <View>
           <Text style={[styles.chartTitle, { color: textMain, marginBottom: 0 }]}>Receitas × Despesas</Text>
           <Text style={{ color: textSub, fontSize: 12 }}>Tendência mensal</Text>
         </View>
         
-        <View style={{ flexDirection: 'row', backgroundColor: dark ? '#334155' : '#f1f5f9', borderRadius: 8, padding: 2 }}>
+        <View style={{ flexDirection: 'row', backgroundColor: dark ? palette.slate[700] : palette.slate[100], borderRadius: 8, padding: 2 }}>
           {[3, 6, 12].map((p) => (
             <TouchableOpacity
               key={p}
@@ -73,11 +67,11 @@ export function TransactionsBarChart({
               style={{
                 paddingHorizontal: 8,
                 paddingVertical: 4,
-                backgroundColor: barPeriod === p ? (dark ? '#1d4ed8' : '#3b82f6') : 'transparent',
+                backgroundColor: barPeriod === p ? palette.primary.DEFAULT : 'transparent',
                 borderRadius: 6,
               }}
             >
-              <Text style={{ fontSize: 10, fontWeight: '700', color: barPeriod === p ? '#fff' : textSub }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: barPeriod === p ? palette.white : textSub }}>
                 {p}M
               </Text>
             </TouchableOpacity>
@@ -95,7 +89,7 @@ export function TransactionsBarChart({
           roundedTop
           xAxisThickness={1}
           yAxisThickness={0}
-          xAxisColor={dark ? '#334155' : '#e2e8f0'}
+          xAxisColor={borderColor}
           yAxisTextStyle={{ color: textSub, fontSize: 10 }}
           noOfSections={4}
           maxValue={Math.max(...barData.map((d) => Math.max(d.income, d.expense, 1))) * 1.2}
@@ -110,11 +104,11 @@ export function TransactionsBarChart({
       </View>
       <View style={{ flexDirection: 'row', gap: 16, marginTop: 12, justifyContent: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#22c55e' }} />
+          <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: palette.success.DEFAULT }} />
           <Text style={{ color: textSub, fontSize: 12 }}>Receitas</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#ef4444' }} />
+          <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: palette.danger.DEFAULT }} />
           <Text style={{ color: textSub, fontSize: 12 }}>Despesas</Text>
         </View>
       </View>
@@ -127,7 +121,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,

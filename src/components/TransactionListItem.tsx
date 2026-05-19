@@ -14,7 +14,7 @@ interface TransactionListItemProps {
 
 export function TransactionListItem({ transaction }: TransactionListItemProps) {
   const router = useRouter();
-  const { cardBg, textMain, textSub, borderColor } = useThemeColors();
+  const { cardBg, textMain, textSub, borderColor, palette } = useThemeColors();
   const isIncome = transaction.type === 'income';
 
   return (
@@ -22,11 +22,11 @@ export function TransactionListItem({ transaction }: TransactionListItemProps) {
       style={[styles.transactionItem, { backgroundColor: cardBg, borderColor }]}
       onPress={() => router.push({ pathname: './manage-transaction', params: { id: transaction.id } })}
     >
-      <View style={[styles.iconContainer, { backgroundColor: isIncome ? '#22c55e20' : '#ef444420' }]}>
+      <View style={[styles.iconContainer, { backgroundColor: isIncome ? palette.success.transparent : palette.danger.transparent }]}>
         {isIncome ? (
-          <ArrowUpRight size={20} color="#22c55e" />
+          <ArrowUpRight size={20} color={palette.success.DEFAULT} />
         ) : (
-          <ArrowDownLeft size={20} color="#ef4444" />
+          <ArrowDownLeft size={20} color={palette.danger.DEFAULT} />
         )}
       </View>
       
@@ -43,7 +43,7 @@ export function TransactionListItem({ transaction }: TransactionListItemProps) {
         </View>
       </View>
       
-      <Text style={[styles.amount, { color: isIncome ? '#22c55e' : '#ef4444' }]}>
+      <Text style={[styles.amount, { color: isIncome ? palette.success.DEFAULT : palette.danger.DEFAULT }]}>
         {isIncome ? '+' : '-'} {transaction.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
       </Text>
     </TouchableOpacity>
