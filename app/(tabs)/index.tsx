@@ -1,12 +1,9 @@
-import { format, getMonth, getYear, subMonths } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Link, useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 import { Eye, EyeOff, Moon, PlusCircle, Sun, TrendingDown, TrendingUp, Wallet } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -14,13 +11,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BarChart, PieChart } from 'react-native-gifted-charts';
-import { CategoryBadge } from '../../src/components/CategoryBadge';
 import { EmptyState } from '../../src/components/EmptyState';
+import { SummaryCard } from '../../src/components/SummaryCard';
+import { TransactionListItem } from '../../src/components/TransactionListItem';
+import { TransactionsBarChart } from '../../src/components/TransactionsBarChart';
+import { TransactionsPieChart } from '../../src/components/TransactionsPieChart';
 import { useTransactionsQuery } from '../../src/application/hooks/useTransactionsQuery';
-import { getCategoryColor, getCategoryLabel } from '../../src/utils/categories';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 function formatCurrency(val: number) {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -51,36 +47,11 @@ function useFadeSlideIn(delay = 0) {
   return { opacity, transform: [{ translateY }] };
 }
 
-interface SummaryCardProps {
-  label: string;
-  value: number;
-  color: string;
-  icon: React.ReactNode;
-  animStyle: any;
-  dark: boolean;
-  hideValues: boolean;
-}
-
-function SummaryCard({ label, value, color, icon, animStyle, dark, hideValues }: SummaryCardProps) {
-  return (
-    <Animated.View style={[animStyle, styles.summaryCard, { backgroundColor: dark ? '#1e293b' : '#fff' }]}>
-      <View style={[styles.summaryIcon, { backgroundColor: color + '20' }]}>
-        {icon}
-      </View>
-      <Text style={[styles.summaryLabel, { color: dark ? '#94a3b8' : '#64748b' }]}>{label}</Text>
-      <Text style={[styles.summaryValue, { color }]}>{hideValues ? '••••••••' : formatCurrency(value)}</Text>
-    </Animated.View>
-  );
-}
-
 export default function DashboardScreen() {
-  const router = useRouter();
   const { colorScheme, toggleColorScheme } = useColorScheme();
   const dark = colorScheme === 'dark';
 
   const [hideValues, setHideValues] = useState(false);
-  const [barPeriod, setBarPeriod] = useState(6);
-  const [pieType, setPieType] = useState<'income' | 'expense'>('expense');
   const { data, isLoading: loading, refetch: refresh } = useTransactionsQuery();
 
   const transactions = useMemo(() => {
@@ -104,54 +75,6 @@ export default function DashboardScreen() {
   const pieAnim      = useFadeSlideIn(300);
   const barAnim      = useFadeSlideIn(400);
   const recentAnim   = useFadeSlideIn(500);
-
-  const pieData = useMemo(() => {
-    const list = transactions.filter((t) => t.type === pieType);
-    const byCategory: Record<string, number> = {};
-    list.forEach((t) => {
-      byCategory[t.category] = (byCategory[t.category] ?? 0) + t.amount;
-    });
-    const sorted = Object.entries(byCategory)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-
-    return sorted.map(([cat, total]) => ({
-      value: Math.max(0, parseFloat((total || 0).toFixed(2))),
-      color: getCategoryColor(cat),
-      text: getCategoryLabel(cat),
-    }));
-  }, [transactions, pieType]);
-
-  const barData = useMemo(() => {
-    return Array.from({ length: barPeriod }, (_, i) => {
-      const d = subMonths(new Date(), (barPeriod - 1) - i);
-      const targetYear  = getYear(d);
-      const targetMonth = getMonth(d);
-
-      const month = transactions.filter((t) => {
-        try {
-          const txDate = new Date(t.date);
-          return getYear(txDate) === targetYear && getMonth(txDate) === targetMonth;
-        } catch { return false; }
-      });
-
-      const income  = month.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-      const expense = month.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-
-      return {
-        label: format(d, barPeriod > 6 ? 'MM/yy' : 'MMM', { locale: ptBR }),
-        income:  Math.max(0, parseFloat((income || 0).toFixed(2))),
-        expense: Math.max(0, parseFloat((expense || 0).toFixed(2))),
-      };
-    });
-  }, [transactions, barPeriod]);
-
-  const groupedBarData = useMemo(() =>
-    barData.map((m) => [
-      { value: m.income,  label: m.label, frontColor: '#22c55e', spacing: 4, labelWidth: 36, labelTextStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 11 } },
-      { value: m.expense, frontColor: '#ef4444' },
-    ]).flat()
-  , [barData, dark]);
 
   const recentTransactions = useMemo(() => [...transactions].slice(0, 5), [transactions]);
 
@@ -245,136 +168,27 @@ export default function DashboardScreen() {
         </Link>
 
         {transactions.length > 0 && (
-          <Animated.View style={[pieAnim, styles.chartCard, { backgroundColor: cardBg }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.chartTitle, { color: textMain, marginBottom: 0 }]}>
-                  Tipo
-                </Text>
-              </View>
-              
-              <View style={{ flexDirection: 'row', backgroundColor: dark ? '#334155' : '#f1f5f9', borderRadius: 8, padding: 2, flexShrink: 0 }}>
-                {(['expense', 'income'] as const).map((type) => (
-                  <TouchableOpacity
-                    key={type}
-                    onPress={() => setPieType(type)}
-                    style={{
-                      paddingHorizontal: 10,
-                      paddingVertical: 4,
-                      backgroundColor: pieType === type ? (type === 'expense' ? '#ef4444' : '#22c55e') : 'transparent',
-                      borderRadius: 6,
-                    }}
-                  >
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: pieType === type ? '#fff' : textSub }}>
-                      {type === 'expense' ? 'Despesas' : 'Receitas'}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={{ alignItems: 'center', paddingVertical: 8 }}>
-              {pieData.length > 0 ? (
-                <PieChart
-                  data={pieData}
-                  donut
-                  radius={90}
-                  innerRadius={54}
-                  innerCircleColor={cardBg}
-                  centerLabelComponent={() => (
-                    <View style={{ alignItems: 'center' }}>
-                      <Text style={{ fontSize: 11, color: dark ? '#94a3b8' : '#64748b' }}>Total</Text>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: dark ? '#f1f5f9' : '#0f172a' }}>
-                        {hideValues ? '••••••••' : formatCurrency(pieType === 'expense' ? totalExpense : totalIncome)}
-                      </Text>
-                    </View>
-                  )}
-                />
-              ) : (
-                <View style={{ height: 180, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ color: textSub, fontSize: 14 }}>
-                    Nenhuma {pieType === 'expense' ? 'despesa' : 'receita'}.
-                  </Text>
-                </View>
-              )}
-            </View>
-            <View style={{ gap: 6, marginTop: 4 }}>
-              {pieData.map((item, i) => (
-                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: item.color }} />
-                    <Text style={{ color: textSub, fontSize: 13 }}>{item.text}</Text>
-                  </View>
-                  <Text style={{ color: textMain, fontWeight: '600', fontSize: 13 }}>
-                    {hideValues ? '••••••••' : formatCurrency(item.value)}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </Animated.View>
+          <TransactionsPieChart
+            transactions={transactions}
+            totalIncome={totalIncome}
+            totalExpense={totalExpense}
+            animStyle={pieAnim}
+            dark={dark}
+            hideValues={hideValues}
+            cardBg={cardBg}
+            textMain={textMain}
+            textSub={textSub}
+          />
         )}
 
-        <Animated.View style={[barAnim, styles.chartCard, { backgroundColor: cardBg }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <View>
-              <Text style={[styles.chartTitle, { color: textMain, marginBottom: 0 }]}>Receitas × Despesas</Text>
-              <Text style={{ color: textSub, fontSize: 12 }}>Tendência mensal</Text>
-            </View>
-            
-            <View style={{ flexDirection: 'row', backgroundColor: dark ? '#334155' : '#f1f5f9', borderRadius: 8, padding: 2 }}>
-              {[3, 6, 12].map((p) => (
-                <TouchableOpacity
-                  key={p}
-                  onPress={() => setBarPeriod(p)}
-                  style={{
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
-                    backgroundColor: barPeriod === p ? (dark ? '#1d4ed8' : '#3b82f6') : 'transparent',
-                    borderRadius: 6,
-                  }}
-                >
-                  <Text style={{ fontSize: 10, fontWeight: '700', color: barPeriod === p ? '#fff' : textSub }}>
-                    {p}M
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={{ overflow: 'hidden', width: SCREEN_WIDTH - 80 }}>
-            <BarChart
-              key={`chart-${barPeriod}`}
-              data={groupedBarData}
-              barWidth={barPeriod > 6 ? 10 : 16}
-              spacing={barPeriod > 6 ? 12 : 24}
-              endSpacing={40}
-              roundedTop
-              xAxisThickness={1}
-              yAxisThickness={0}
-              xAxisColor={dark ? '#334155' : '#e2e8f0'}
-              yAxisTextStyle={{ color: textSub, fontSize: 10 }}
-              noOfSections={4}
-              maxValue={Math.max(...barData.map((d) => Math.max(d.income, d.expense, 1))) * 1.2}
-              isAnimated
-              animationDuration={600}
-              barBorderRadius={4}
-              initialSpacing={10}
-              width={SCREEN_WIDTH - 100}
-              hideRules
-              xAxisLabelTextStyle={{ color: textSub, fontSize: 10, width: 40, textAlign: 'center' }}
-            />
-          </View>
-          <View style={{ flexDirection: 'row', gap: 16, marginTop: 12, justifyContent: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#22c55e' }} />
-              <Text style={{ color: textSub, fontSize: 12 }}>Receitas</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: '#ef4444' }} />
-              <Text style={{ color: textSub, fontSize: 12 }}>Despesas</Text>
-            </View>
-          </View>
-        </Animated.View>
+        <TransactionsBarChart
+          transactions={transactions}
+          animStyle={barAnim}
+          dark={dark}
+          cardBg={cardBg}
+          textMain={textMain}
+          textSub={textSub}
+        />
 
         <Animated.View style={recentAnim}>
           <Text style={[styles.chartTitle, { color: textMain, marginBottom: 12 }]}>Transações Recentes</Text>
@@ -389,26 +203,7 @@ export default function DashboardScreen() {
             </View>
           ) : (
             recentTransactions.map((tx) => (
-              <TouchableOpacity 
-                key={tx.id} 
-                style={[styles.txRow, { backgroundColor: cardBg }]}
-                onPress={() => router.push({ pathname: '/(tabs)/manage-transaction', params: { id: tx.id } })}
-              >
-                <View style={[styles.txDot, { backgroundColor: getCategoryColor(tx.category) + '25' }]}>
-                  <View style={[styles.txDotInner, { backgroundColor: getCategoryColor(tx.category) }]} />
-                </View>
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={{ color: textMain, fontWeight: '600', fontSize: 14 }} numberOfLines={1}>
-                    {hideValues ? '••••••••' : tx.description}
-                  </Text>
-                  <View style={{ marginTop: 2 }}>
-                    <CategoryBadge category={tx.category} />
-                  </View>
-                </View>
-                <Text style={{ fontWeight: '700', fontSize: 15, color: tx.type === 'income' ? '#22c55e' : '#ef4444' }}>
-                  {hideValues ? '••••••••' : `${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.amount)}`}
-                </Text>
-              </TouchableOpacity>
+              <TransactionListItem key={tx.id} transaction={tx} />
             ))
           )}
         </Animated.View>
@@ -430,44 +225,6 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  summaryCard: {
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  summaryIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-
-  chartCard: {
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
   chartTitle: {
     fontSize: 17,
     fontWeight: '700',
@@ -478,29 +235,5 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  txRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  txDot: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  txDotInner: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
   },
 });
