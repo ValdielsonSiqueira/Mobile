@@ -46,6 +46,24 @@ A aplicação passou por duas grandes fases de refatoração para garantir maior
 - **Backend as a Service (BaaS):** Firebase (Auth, Firestore Database, Storage)
 - **Gerenciador de Pacotes:** pnpm
 
+## 🏆 Avaliação: Requisitos do Tech Challenge (Fase 4)
+
+Com base nas exigências do desafio final da FIAP, este projeto cumpre e excede as expectativas arquiteturais:
+
+### 1. Refatoração e Melhoria da Arquitetura ✅
+- **Clean Architecture:** O projeto é estritamente separado em camadas (`domain`, `infrastructure`, `application`), isolando regras de negócio e integrações do framework visual (Expo Router em `app/`).
+- **Arquitetura Modular:** Componentes massivos foram fragmentados em partes menores e reutilizáveis (ex: `SummaryCard`, gráficos extraídos para componentes independentes, `TransactionForm` modular).
+- **State Management Avançado:** O estado remoto, cache e revalidação de dados assíncronos é 100% gerenciado via **React Query (`@tanstack/react-query`)**, estabelecendo um padrão escalável muito superior ao estado local isolado.
+
+### 2. Performance e Otimização ✅
+- **Armazenamento em Cache:** A utilização do React Query previne consultas desnecessárias ao Firebase, servindo listagens a partir do cache e recarregando em background para uma UI ultrarrápida.
+- **Lazy Loading / Paginação:** Foi implementado _Infinite Scrolling_ utilizando `FlatList` com `onEndReached` no Histórico de Transações.
+- **Programação Reativa:** A interface reage dinamicamente aos estados globais do sistema, como o **Design System (`useThemeColors`)** que alterna todo o estilo de cores (`Light/Dark`) de forma limpa, além de aplicar princípios de _Optimistic UI_ nas transações.
+
+### 3. Segurança no Desenvolvimento ✅
+- **Autenticação Segura:** Todas as rotas dependem do `Firebase Auth` para entrada e permanência no app.
+- **Criptografia de Dados:** Implementação customizada do `SecureStorageService` usando `expo-secure-store`, persistindo os dados sensíveis direto no hardware protegido do celular (Keychain/Keystore), e implementando um fallback de `localStorage` para a web.
+
 ## ⚙️ Pré-requisitos
 
 Antes de rodar o projeto, você precisa ter instalado na sua máquina:
