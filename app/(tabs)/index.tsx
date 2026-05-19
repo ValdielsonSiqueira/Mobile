@@ -189,7 +189,7 @@ export default function DashboardScreen() {
             </View>
           ) : (
             recentTransactions.map((tx) => (
-              <TransactionListItem key={tx.id} transaction={tx} />
+              <TransactionListItem key={tx.id} transaction={tx} hideValues={hideValues} />
             ))
           )}
         </Animated.View>
