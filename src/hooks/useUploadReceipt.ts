@@ -1,23 +1,11 @@
-import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { useCallback, useState } from 'react';
-import { storage } from '../firebase/config';
-
-interface UploadReceiptResult {
-  url: string;
-  path: string;
-}
+import { StorageService, UploadReceiptResult } from '../infrastructure/storage/StorageService';
 
 export function useUploadReceipt() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Faz upload de um arquivo (uri local) para Firebase Storage.
-   * @param uri        - URI local do arquivo (expo-document-picker / expo-image-picker)
-   * @param userId     - UID do usuário autenticado
-   * @param fileName   - Nome desejado para o arquivo no storage
-   */
   const upload = useCallback(
     async (uri: string, userId: string, fileName: string): Promise<UploadReceiptResult> => {
       setUploading(true);
@@ -25,40 +13,13 @@ export function useUploadReceipt() {
       setError(null);
 
       try {
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.onload = function () {
-            resolve(xhr.response);
-          };
-          xhr.onerror = function (e) {
-            reject(new TypeError("Network request failed"));
-          };
-          xhr.responseType = "blob";
-          xhr.open("GET", uri, true);
-          xhr.send(null);
-        });
-
-        const storagePath = `users/${userId}/receipts/${Date.now()}_${fileName}`;
-        const storageRef = ref(storage, storagePath);
-        const uploadTask = uploadBytesResumable(storageRef, blob);
-
-        return await new Promise<UploadReceiptResult>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-              setProgress(pct);
-            },
-            (err) => {
-              setError(err.message);
-              reject(err);
-            },
-            async () => {
-              const url = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve({ url, path: storagePath });
-            }
-          );
-        });
+        const result = await StorageService.uploadReceipt(
+          uri, 
+          userId, 
+          fileName, 
+          (pct) => setProgress(pct)
+        );
+        return result;
       } catch (e: any) {
         setError(e.message ?? 'Erro no upload.');
         throw e;
@@ -70,8 +31,7 @@ export function useUploadReceipt() {
   );
 
   const remove = useCallback(async (storagePath: string) => {
-    const storageRef = ref(storage, storagePath);
-    await deleteObject(storageRef);
+    await StorageService.deleteReceipt(storagePath);
   }, []);
 
   return { upload, remove, uploading, progress, error };

@@ -7,7 +7,6 @@ import '../global.css';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
-import { TransactionProvider } from '../src/contexts/TransactionContext';
 import { LoadingScreen } from '../src/components/LoadingScreen';
 
 export const unstable_settings = {
@@ -39,9 +38,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TransactionProvider>
-            <RootLayoutContent />
-          </TransactionProvider>
+          <RootLayoutContent />
         </AuthProvider>
       </QueryClientProvider>
       <StatusBar style="auto" />

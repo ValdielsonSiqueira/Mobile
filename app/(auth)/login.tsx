@@ -1,12 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as z from 'zod';
-import { auth } from '../../src/firebase/config';
 import { palette } from '../../src/assets/tokens/colors';
+import { AuthService } from '../../src/infrastructure/security/AuthService';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'O e-mail é obrigatório.').email('Digite um e-mail válido.'),
@@ -28,9 +27,9 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, data.email, data.password);
+        await AuthService.register(data.email, data.password);
       } else {
-        await signInWithEmailAndPassword(auth, data.email, data.password);
+        await AuthService.login(data.email, data.password);
       }
       router.replace('/(tabs)');
     } catch (error: any) {
