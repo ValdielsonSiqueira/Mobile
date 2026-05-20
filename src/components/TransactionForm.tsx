@@ -18,7 +18,7 @@ export const transactionSchema = z.object({
   type: z.enum(['income', 'expense']),
   category: z.string().min(1, 'Selecione uma categoria'),
   date: z.string(), 
-  receiptUrl: z.string().optional(),
+  receiptUrl: z.string().nullable().optional(),
 });
 
 export type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -70,7 +70,7 @@ export function TransactionForm({ initialData, onSubmit, uploading, isSaving, up
         type: initialData.type,
         category: initialData.category,
         date: initialData.date,
-        receiptUrl: initialData.receiptUrl,
+        receiptUrl: initialData.receiptUrl ?? undefined,
       });
     } else {
       reset({

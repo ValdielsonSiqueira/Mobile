@@ -118,7 +118,12 @@ export class FirebaseTransactionRepository implements ITransactionRepository {
     data: Partial<TransactionInput>,
   ): Promise<void> {
     const docRef = doc(db, "users", userId, "transactions", id);
-    await updateDoc(docRef, data as any);
+    
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    );
+    
+    await updateDoc(docRef, cleanData);
   }
 
   async deleteTransaction(userId: string, id: string): Promise<void> {
